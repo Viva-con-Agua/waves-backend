@@ -8,8 +8,6 @@
 
 
 
-  
-
 ## Features
 
   
@@ -36,7 +34,9 @@
 
 *  [git](https://www.robinwieruch.de/git-essential-commands/)
 
-  
+*  [XAMPP](https://www.apachefriends.org/de/download.html) 
+
+*  [.env](bilal.bellafkir@gmail.com)
 
 ## Installation
 

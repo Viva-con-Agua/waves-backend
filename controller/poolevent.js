@@ -6,18 +6,21 @@ const initConnection = require("../config/connectMysql").initConnection;
 //TODO: pagination + sorting
 exports.getPoolEvents = (req, res) => {
   const conn = initConnection();
-  conn.query("SELECT * FROM poolevents;", (error, poolevents) => {
-    if (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
+  conn.query(
+    "SELECT * FROM poolevents p JOIN locations l ON p.id=l.poolevent_id JOIN descriptions d ON p.id=d.poolevent_id;",
+    (error, poolevents) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+      res.status(200).json({
+        success: true,
+        data: poolevents
       });
     }
-    res.status(200).json({
-      success: true,
-      data: poolevents
-    });
-  });
+  );
 };
 
 // @desc get poolevent by id
@@ -47,20 +50,35 @@ exports.getPoolEventById = (req, res) => {
 // @desc  create poolevent
 // @route POST /api/v1/poolevent
 // @access Private
-exports.postPoolEvent = (req, res) => {
-  const { body } = req;
-  const conn = initConnection();
-  conn.query(`INSERT INTO poolevents SET ?`, body, (error, response) => {
-    if (error) {
-      res.status(400).json({
-        success: false,
-        message: `Error in create poolevent: ${error.message}`
+//TODO: desc
+exports.postPoolEvent = (req, res, next) => {
+  const { poolevent, location, description } = req.body;
+  let conn = initConnection();
+  conn.query(`INSERT INTO poolevents SET ?`, poolevent, (error, p) => {
+    if (error) res.status.json({ success: false, message: error.message });
+    if (location !== undefined) {
+      location.poolevent_id = p.insertId;
+      conn.query(`INSERT INTO locations SET ?`, location, (error, l) => {
+        if (error) res.status.json({ success: false, message: error.message });
+        description.poolevent_id = p.insertId;
+        conn.query(
+          `INSERT INTO descriptions SET ?`,
+          description,
+          (error, d) => {
+            if (error)
+              res.status(400).json({ success: false, message: error.message });
+            res.status(200).json({
+              success: true,
+              location: l,
+              poolevent: p,
+              description: d
+            });
+          }
+        );
       });
+    } else if (decription !== undefined) {
     } else {
-      res.status(200).json({
-        success: true,
-        data: response
-      });
+      res.json({ p });
     }
   });
 };

@@ -1,19 +1,14 @@
-const express = require("express");
-const cors = require('cors')
-const dotenv = require("dotenv");
-const morgan = require("morgan")("dev");
-const bodyParser = require("body-parser");
-const routes = require("./routes");
-const connectDb = require("./config/dbConnector");
 const connectMysql = require("./config/connectMysql");
+const bodyParser = require("body-parser");
+const morgan = require("morgan")("dev");
+const express = require("express");
+const routes = require("./routes");
 const socket = require("./socket");
-
-
+const dotenv = require("dotenv");
+const cors = require('cors')
 require("colors");
 
 dotenv.config({ path: "./config/.env" });
-
-connectDb();
 
 
 const app = express();

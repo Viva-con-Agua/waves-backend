@@ -1,31 +1,33 @@
 const mysql = require("mysql");
 
-
-const initConnection = ()=>{
+const initConnection = () => {
   const conn = mysql.createConnection({
     host: process.env.HOST,
     user: process.env.USER_NAME,
     password: process.env.PASSWORD,
-    database: process.env.DATABASE,
+    database: process.env.DATABASE
   });
   return conn;
-}
+};
 
-const connectMysql = (next) => {
+const connectMysql = () => {
   try {
-    const conn = mysql.createConnection({
+    const conn = mysql.createConnection(
+      {
         host: process.env.HOST,
         user: process.env.USER_NAME,
         password: process.env.PASSWORD,
-        database: process.env.DATABASE,
-      });
-    conn.connect((err)=>{
-        if(err) throw err;
-        console.log('mysqlDb successfully connected');
-    })
+        database: process.env.DATABASE
+      },
+      { multipleStatements: true }
+    );
+    conn.connect(err => {
+      if (err) throw err;
+      console.log("db connected");
+    });
   } catch (error) {
     throw error;
   }
 };
 
-module.exports = {connectMysql, initConnection};
+module.exports = { connectMysql, initConnection };
