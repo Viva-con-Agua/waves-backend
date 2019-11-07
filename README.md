@@ -1,4 +1,4 @@
-# Simple Node with Express Server with REST API
+# waves-rest-api
 
   
 
