@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const pooleventController = require("../controller/poolevent");
 const commentController = require("../controller/comment");
+const voteController = require("../controller/vote");
+const favoriteController = require("../controller/favorites");
 
 router
   .route("/poolevent")
@@ -15,13 +17,26 @@ router
 
 router
   .route("/comment")
-  .get(commentController.getComments)
   .post(commentController.postComment);
 
 router
+  .route("/comment/:pooleventId")
+  .get(commentController.getCommentsByPooleventId)
+
+router
   .route("/comment/:id")
-  .get(commentController.getCommentById)
   .put(commentController.putComment)
   .delete(commentController.deleteComment);
 
+router.route("/vote").post(voteController.postvote);
+
+router.route("/vote/:comment_id").get(voteController.getvoteByCommentId);
+
+router.route("/vote/:id").delete(voteController.deletevote);
+
+router.route("/favorite/:userId").get(favoriteController.getFavoriteByUserId);
+
+router.route("/favorite/:id").delete(favoriteController.deleteFavorite);
+
+router.route("/favorite").post(favoriteController.postFavorite);
 module.exports = router;

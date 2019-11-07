@@ -90,7 +90,7 @@ exports.deletePoolEvent = (req, res) => {
   const { id } = req.params;
   const conn = initConnection();
   conn.query(
-    `DELETE FROM poolevents  WHERE poolevents.id='${id}';`,
+    `DELETE FROM poolevents WHERE poolevents.id='${id}';`,
     (error, resp) => {
       if (error) {
         res.status(400).json({
