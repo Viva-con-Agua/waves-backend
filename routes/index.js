@@ -1,42 +1,82 @@
 const router = require("express").Router();
-const pooleventController = require("../controller/poolevent");
-const commentController = require("../controller/comment");
-const voteController = require("../controller/vote");
-const favoriteController = require("../controller/favorites");
+const {
+  deletePoolEvent,
+  getPoolEventById,
+  getPoolEventByUserId,
+  getPoolEvents,
+  postPoolEvent,
+  putPoolEvent
+} = require("../controller/poolevent");
+const {
+  deleteComment,
+  getCommentsByPooleventId,
+  postComment,
+  putComment
+} = require("../controller/comment");
+const {
+  deletevote,
+  getvoteByCommentId,
+  postvote
+} = require("../controller/vote");
+const {
+  deleteFavorite,
+  getFavoriteByUserId,
+  postFavorite
+} = require("../controller/favorites");
+const {
+  getDirtyNotifications,
+  getNotificationByUserId
+} = require("../controller/notification");
+const { postBadge, getAllBadges } = require("../controller/badges");
+
+router.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "i'm alive!"
+  });
+});
 
 router
   .route("/poolevent")
-  .get(pooleventController.getPoolEvents)
-  .post(pooleventController.postPoolEvent);
+  .get(getPoolEvents)
+  .post(postPoolEvent);
 
 router
   .route("/poolevent/:id")
-  .get(pooleventController.getPoolEventById)
-  .put(pooleventController.putPoolEvent)
-  .delete(pooleventController.deletePoolEvent);
+  .get(getPoolEventById)
+  .put(putPoolEvent)
+  .delete(deletePoolEvent);
 
-router
-  .route("/comment")
-  .post(commentController.postComment);
+router.route("/comment").post(postComment);
 
 router
   .route("/comment/:pooleventId")
-  .get(commentController.getCommentsByPooleventId)
+  .get(getCommentsByPooleventId);
 
 router
   .route("/comment/:id")
-  .put(commentController.putComment)
-  .delete(commentController.deleteComment);
+  .put(putComment)
+  .delete(deleteComment);
 
-router.route("/vote").post(voteController.postvote);
+router.route("/vote").post(postvote);
 
-router.route("/vote/:comment_id").get(voteController.getvoteByCommentId);
+router.route("/vote/:comment_id").get(getvoteByCommentId);
 
-router.route("/vote/:id").delete(voteController.deletevote);
+router.route("/vote/:id").delete(deletevote);
 
-router.route("/favorite/:userId").get(favoriteController.getFavoriteByUserId);
+router.route("/favorite/:userId").get(getFavoriteByUserId);
 
-router.route("/favorite/:id").delete(favoriteController.deleteFavorite);
+router.route("/favorite/:id").delete(deleteFavorite);
 
-router.route("/favorite").post(favoriteController.postFavorite);
+router.route("/favorite").post(postFavorite);
+
+router.route("/notification/:userId").get(getNotificationByUserId);
+
+router.route("/notification/dirty").get(getDirtyNotifications);
+
+router
+  .route("/badge")
+  .post(postBadge)
+  .get(getAllBadges);
+
 module.exports = router;

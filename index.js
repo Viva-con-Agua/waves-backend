@@ -26,14 +26,7 @@ app.use(bodyParser.json());
 connectMysql.connectMysql()
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "i am alive!"
-  });
-});
-
-app.use("/api/v1", routes);
+app.use("/waves/api/v1", routes);
 
 const port = process.env.PORT || 5000;
 

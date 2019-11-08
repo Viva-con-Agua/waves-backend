@@ -6,7 +6,8 @@ const initConnection = require("../config/connectMysql").initConnection;
 exports.getCommentsByPooleventId = (req, res) => {
   const { pooleventId } = req.params;
   const conn = initConnection();
-  conn.query(`SELECT * FROM comments c WHERE c.poolevent_id='${pooleventId}';`, (err, comment) => {
+  const sql = `SELECT * FROM comments c WHERE c.poolevent_id='${pooleventId}';`;
+  conn.query(sql, (err, comment) => {
     if (err) {
       res.status(400).json({
         success: false,
@@ -28,7 +29,8 @@ exports.getCommentsByPooleventId = (req, res) => {
 exports.postComment = (req, res) => {
   const { body } = req;
   let conn = initConnection();
-  conn.query(`INSERT INTO comments SET ?`, body, (error, comment) => {
+  const sql = `INSERT INTO comments SET ?`;
+  conn.query(sql, body, (error, comment) => {
     if (error) {
       res.status(400).json({
         success: false,
