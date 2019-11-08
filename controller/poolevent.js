@@ -1,13 +1,18 @@
 const initConnection = require("../config/connectMysql").initConnection;
+const { saveNotification } = require("../service/notification");
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
 // @access Public
 //TODO: pagination + sorting
 exports.getPoolEvents = (req, res) => {
+  let {limit}= req;
+  if(!limit){
+    limit= 10;
+  }
   const conn = initConnection();
   conn.query(
-    "SELECT * FROM poolevents p JOIN locations l ON p.id=l.poolevent_id JOIN descriptions d ON p.id=d.poolevent_id;",
+    `SELECT * FROM poolevents LIMIT ${limit};`,
     (error, poolevents) => {
       if (error) {
         res.status(400).json({
@@ -55,7 +60,7 @@ exports.postPoolEvent = (req, res, next) => {
   const { poolevent, location, description } = req.body;
   let conn = initConnection();
   conn.query(`INSERT INTO poolevents SET ?`, poolevent, (error, p) => {
-    if (error) res.status.json({ success: false, message: error.message });
+    if (error) res.status(400).json({ success: false, message: error.message });
     if (location !== undefined) {
       location.poolevent_id = p.insertId;
       conn.query(`INSERT INTO locations SET ?`, location, (error, l) => {
@@ -65,14 +70,20 @@ exports.postPoolEvent = (req, res, next) => {
           `INSERT INTO descriptions SET ?`,
           description,
           (error, d) => {
-            if (error)
+            if (error) {
               res.status(400).json({ success: false, message: error.message });
-            res.status(200).json({
-              success: true,
-              location: l,
-              poolevent: p,
-              description: d
-            });
+            }else{
+              saveNotification({
+                poolevent_id: p.insertId,
+                type:'PE_NEW'
+              })
+              res.status(200).json({
+                success: true,
+                location: l,
+                poolevent: p,
+                description: d
+              });
+            }
           }
         );
       });
@@ -111,6 +122,33 @@ exports.deletePoolEvent = (req, res) => {
 // @route PUT /api/v1/poolevent/:id
 // @access Private
 exports.putPoolEvent = (req, res) => {
+  const { body } = req;
+  const { id } = req.params;
+  const conn = initConnection();
+  conn.query(
+    `UPDATE poolevents SET ? WHERE id =${id};`,
+    body,
+    (error, resp) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: `Error in putPoolEvent: ${error.message}`
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          data: resp
+        });
+      }
+    }
+  );
+};
+
+//TODO:
+// @desc edit poolevent by id
+// @route PUT /api/v1/poolevent/:id
+// @access Private
+exports.getPoolEventByUserId = (req, res) => {
   const { body } = req;
   const { id } = req.params;
   const conn = initConnection();

@@ -2,7 +2,7 @@ const initConnection = require("../config/connectMysql").initConnection;
 
 // @desc get favorite by userId
 // @route GET /api/v1/favorite/:id
-// @access Public
+// @access private
 exports.getFavoriteByUserId = (req, res) => {
   const { userId } = req.params;
   const conn = initConnection();
