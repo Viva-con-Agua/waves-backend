@@ -1,82 +1,35 @@
 const router = require("express").Router();
-const {
-  deletePoolEvent,
-  getPoolEventById,
-  getPoolEventByUserId,
-  getPoolEvents,
-  postPoolEvent,
-  putPoolEvent
-} = require("../controller/poolevent");
-const {
-  deleteComment,
-  getCommentsByPooleventId,
-  postComment,
-  putComment
-} = require("../controller/comment");
-const {
-  deletevote,
-  getvoteByCommentId,
-  postvote
-} = require("../controller/vote");
-const {
-  deleteFavorite,
-  getFavoriteByUserId,
-  postFavorite
-} = require("../controller/favorites");
-const {
-  getDirtyNotifications,
-  getNotificationByUserId
-} = require("../controller/notification");
-const { postBadge, getAllBadges } = require("../controller/badges");
+const pooleventController = require("../controller/poolevent");
+const applicationController = require("../controller/application");
 
-router.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "i'm alive!"
-  });
-});
 
 router
   .route("/poolevent")
-  .get(getPoolEvents)
-  .post(postPoolEvent);
+  .get(pooleventController.getPoolEvents)
+  .post(pooleventController.postPoolEvent);
 
 router
   .route("/poolevent/:id")
-  .get(getPoolEventById)
-  .put(putPoolEvent)
-  .delete(deletePoolEvent);
-
-router.route("/comment").post(postComment);
+  .get(pooleventController.getPoolEventById)
+  .put(pooleventController.putPoolEvent)
+  .delete(pooleventController.deletePoolEvent);
 
 router
-  .route("/comment/:pooleventId")
-  .get(getCommentsByPooleventId);
+  .route("/application")
+  .post(applicationController.postApplication);
 
 router
-  .route("/comment/:id")
-  .put(putComment)
-  .delete(deleteComment);
-
-router.route("/vote").post(postvote);
-
-router.route("/vote/:comment_id").get(getvoteByCommentId);
-
-router.route("/vote/:id").delete(deletevote);
-
-router.route("/favorite/:userId").get(getFavoriteByUserId);
-
-router.route("/favorite/:id").delete(deleteFavorite);
-
-router.route("/favorite").post(postFavorite);
-
-router.route("/notification/:userId").get(getNotificationByUserId);
-
-router.route("/notification/dirty").get(getDirtyNotifications);
+  .route("/application/:id")
+  .get(applicationController.getApplicationById)
+  .put(applicationController.putApplication)
+  .delete(applicationController.deleteApplication);
 
 router
-  .route("/badge")
-  .post(postBadge)
-  .get(getAllBadges);
+  .route("/application/event/:id")
+  .get(applicationController.getApplicationsEvent)
+
+router
+  .route("/application/user/:id")
+  .get(applicationController.getApplicationsUser)
 
 module.exports = router;

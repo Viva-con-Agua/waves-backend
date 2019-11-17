@@ -1,14 +1,19 @@
-const connectMysql = require("./config/connectMysql");
-const bodyParser = require("body-parser");
-const morgan = require("morgan")("dev");
 const express = require("express");
-const routes = require("./routes");
-const socket = require("./socket");
-const dotenv = require("dotenv");
 const cors = require('cors')
+const dotenv = require("dotenv");
+const morgan = require("morgan")("dev");
+const bodyParser = require("body-parser");
+const routes = require("./routes");
+const connectDb = require("./config/dbConnector");
+const connectMysql = require("./config/connectMysql");
+const socket = require("./socket");
+
+
 require("colors");
 
 dotenv.config({ path: "./config/.env" });
+
+connectDb();
 
 
 const app = express();
@@ -26,7 +31,14 @@ app.use(bodyParser.json());
 connectMysql.connectMysql()
 app.use(cors());
 
-app.use("/waves/api/v1", routes);
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "i am alive!"
+  });
+});
+
+app.use("/api/v1", routes);
 
 const port = process.env.PORT || 5000;
 

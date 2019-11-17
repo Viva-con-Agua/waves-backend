@@ -1,4 +1,4 @@
-# waves-rest-api
+# Waves-Backend
 
   
 
@@ -7,6 +7,8 @@
   
 
 
+
+  
 
 ## Features
 
@@ -34,9 +36,7 @@
 
 *  [git](https://www.robinwieruch.de/git-essential-commands/)
 
-*  [XAMPP](https://www.apachefriends.org/de/download.html) 
-
-*  [.env](bilal.bellafkir@gmail.com)
+  
 
 ## Installation
 
@@ -59,11 +59,23 @@
 
   
 
-* visit http://localhost:5000
+* visit http://localhost:5000/api/v1
 
 * /poolevent
 
 * /poolevent/:id
+
+* /application
+
+* /appliation/:id
+
+* /appliation/event/:eventid
+
+* /appliation/user/:userid
+
+
+
+
 
   
 
