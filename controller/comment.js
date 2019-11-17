@@ -1,4 +1,5 @@
 const initConnection = require("../config/connectMysql").initConnection;
+const { pooleventBadgeChecker } = require("../service/gamification");
 
 // @desc get comment by id
 // @route GET /api/v1/comment/:id
@@ -6,7 +7,9 @@ const initConnection = require("../config/connectMysql").initConnection;
 exports.getCommentsByPooleventId = (req, res) => {
   const { pooleventId } = req.params;
   const conn = initConnection();
-  const sql = `SELECT * FROM comments c WHERE c.poolevent_id='${pooleventId}';`;
+  const sql = `SELECT c.text, c.id, c.created_at, c.user_id, u.first_name,u.last_name FROM comments c 
+              JOIN users u ON c.user_id=u.id 
+              WHERE c.poolevent_id='${pooleventId}';`;
   conn.query(sql, (err, comment) => {
     if (err) {
       res.status(400).json({
@@ -37,9 +40,17 @@ exports.postComment = (req, res) => {
         messaage: error.message
       });
     } else {
-      res.status(200).json({
-        success: true,
-        data: comment
+      pooleventBadgeChecker("comment", (error) => {
+        if(error){
+          res.status(400).json({
+            success: false,
+            messaage: error.message
+          });
+        }
+        res.status(200).json({
+          success: true,
+          data: comment
+        });
       });
     }
   });

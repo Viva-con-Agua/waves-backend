@@ -18,35 +18,14 @@ exports.saveNotification = async notification => {
   });
 };
 
-exports.setNotificationDirty = (notifications, callback) => {
-  const conn = initConnection();
-  notifications.map((notification, i) => {
-    if (!notification.dirty) {
-      const sql = `UPDATE notifications SET ? WHERE id=${notification.id}`;
-      conn.query(sql, { dirty: 1 }, error => {
-        if (!error && notifications.length - 1 == i) {
-          callback();
-        } else {
-          throw error;
-        }
-      });
-    } else {
-      if (notifications.length - 1 == i) {
-        callback();
-      }
-    }
-  });
-};
-
-//TODO
-exports.saveNotificationByUserId = userId => {
-  const conn = initConnection();
-  const sql = `INSERT INTO notifications SET ?`;
+exports.saveBadgeNotificationByUserId = async (userId, badge) => {
+  //Todo
 };
 
 exports.getNonDirtyNotification = (user_id, callback) => {
   const conn = initConnection();
-  const sql = `SELECT * FROM notifications n WHERE n.dirty=0 AND n.user_id=${user_id}`;
+  const sql = `SELECT * FROM notifications n 
+               WHERE n.dirty=0 AND n.user_id=${user_id};`;
   conn.query(sql, (error, numNotification) => {
     if (!error) {
       callback(error, numNotification);
@@ -54,4 +33,29 @@ exports.getNonDirtyNotification = (user_id, callback) => {
       callback(error, numNotification);
     }
   });
+};
+
+exports.getDirtyNotification = (user_id, callback) => {
+  try {
+    const conn = initConnection();
+    const sql = `SELECT * FROM notifications n 
+                 WHERE dirty=1 AND user_id=${user_id};`;
+    conn.query(sql, (error, notifications) => {
+      if (!error) {
+        callback(notifications);
+      } else {
+        callback(error, notifications);
+      }
+    });
+  } catch (error) {
+    callback(error);
+  }
+};
+
+exports.sendNewBadge = data => {
+  try {
+    global.em.emit("NEW_BADGE", data);
+  } catch (error) {
+    throw error;
+  }
 };

@@ -4,9 +4,19 @@ const initConnection = require("../config/connectMysql").initConnection;
 // @route GET /api/v1/Badge/:id
 // @access Public
 exports.getAllBadges = (req, res) => {
+  const { userId } = req.params;
   const conn = initConnection();
   conn.query(
-    `SELECT * FROM badges`,
+    `SELECT b.name, 
+    b.desc as message, 
+    bp.progress,
+    c.points,c.desc, 
+    b.img_url, 
+    bp.completed 
+    FROM badges b 
+    JOIN badge_progress bp ON b.id=bp.badge_id 
+    JOIN challenges c ON c.badge_id=b.id  
+    WHERE bp.user_id=${userId}`,
     (err, badges) => {
       if (err) {
         res.status(400).json({
@@ -45,20 +55,17 @@ exports.postBadge = (req, res) => {
 exports.deleteBadge = (req, res) => {
   const { id } = req.params;
   const conn = initConnection();
-  conn.query(
-    `DELETE FROM badges b WHERE b.id='${id}'`,
-    (error, resp) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: `Error in deleteBadge ${error.message}`
-        });
-      } else {
-        res.status(200).json({
-          success: true,
-          data: resp
-        });
-      }
+  conn.query(`DELETE FROM badges b WHERE b.id='${id}'`, (error, resp) => {
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: `Error in deleteBadge ${error.message}`
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: resp
+      });
     }
-  );
+  });
 };
