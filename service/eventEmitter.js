@@ -3,7 +3,7 @@ const { EventEmitter } = require("events");
 const initEmitter = () => {
   try {
     global.em = new EventEmitter();
-    em.setMaxListner(0)
+    em.setMaxListeners(0);
   } catch (error) {
     console.log(`error in initEmitter ${error.message}`);
   }

@@ -5,41 +5,34 @@ const { sendNewBadge } = require("../service/notification");
 exports.pooleventBadgeChecker = (type, callback) => {
   try {
     getNumOfPeByUserId(1, (error, num) => {
-      console.log("getbun: ", num);
-      console.log("error: ", error);
-      //if (!error) {
-       // callback(error);
-      //}
+      if (error) {
+        callback(error);
+      }
       updatePoints(num[0].count, 1, type, (error, resp) => {
         if (error) {
-          console.log(error);
           callback(error);
         }
-        console.log("odate: ", resp);
-
         joinChallengeOnProgress(1, type, (error, progress) => {
           if (error) {
             callback(error);
           }
-          console.log("completed chellenges: ", progress);
           if (progress.length > 0) {
             setChallengeToCompleted(progress, (error, resp) => {
-              console.log('set complete: ', resp);
               if (!error) {
-                sendNewBadge(progress);
-                callback(null, resp);
+                sendNewBadge(progress, () => {
+                  callback(null, resp);
+                });
               } else {
                 callback(error);
               }
             });
           } else {
-            callback();
+            callback(null, progress);
           }
         });
       });
     });
   } catch (error) {
-    console.log('scoop');
     callback(error);
   }
 };

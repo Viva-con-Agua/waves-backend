@@ -8,13 +8,29 @@ exports.getNumOfPeByUserId = (userId, callback) => {
       userId,
       (error, numPoolevents) => {
         if (!error) {
-          callback(null,numPoolevents)
+          callback(null, numPoolevents);
         } else {
-          callback(error)
+          callback(error);
         }
       }
     );
   } catch (error) {
-    callback(error)
+    callback(error);
+  }
+};
+
+exports.savePoolevent = (poolevent, callback) => {
+  try {
+    const conn = initConnection();
+    const sql = "INSERT INTO poolevents SET ?;";
+    conn.query(sql, poolevent ,(error, resp) => {
+      if (!error) {
+        callback(null, resp);
+      } else {
+        callback(error);
+      }
+    });
+  } catch (error) {
+    callback(error);
   }
 };

@@ -12,7 +12,7 @@ exports.getNotificationByUserId = async (req, res) => {
     const sql = `SELECT n.type,n.created_at, p.name 
     FROM notifications n 
     JOIN poolevents p ON p.id=n.poolevent_id 
-    WHERE n.user_id=?;`;
+    WHERE n.user_id=? ORDER BY n.created_at DESC LIMIT 10;`;
     conn.query(sql, userId, (error, notifications) => {
       if (!error) {
         conn.query(

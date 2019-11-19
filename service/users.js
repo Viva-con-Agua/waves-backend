@@ -1,13 +1,13 @@
 const { initConnection } = require("../config/connectMysql");
 
-exports.getAllUsersIds = (callback) => {
+exports.getAllUsersIds = callback => {
   const conn = initConnection();
   const sql = "SELECT users.id FROM users";
   conn.query(sql, (error, rows) => {
     if (!error) {
-        callback(rows)
+      callback(null, rows);
     } else {
-      throw error;
+      callback(error);
     }
   });
 };

@@ -2,6 +2,9 @@ const initConnection = require("../config/connectMysql").initConnection;
 const { saveNotification } = require("../service/notification");
 const { validationResult } = require("express-validator");
 const { pooleventBadgeChecker } = require("../service/gamification");
+const { savePoolevent } = require("../service/poolevent");
+const { saveLocation } = require("../service/location");
+const { saveDescription } = require("../service/description");
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
@@ -54,6 +57,7 @@ exports.getPoolEvents = (req, res, next) => {
 // @route GET /api/v1/poolevent/:id
 // @access Public
 exports.getPoolEventById = (req, res) => {
+  console.log('scoop');
   const { id } = req.params;
   const conn = initConnection();
   const sql = `SELECT * FROM poolevents AS p  
@@ -67,6 +71,7 @@ exports.getPoolEventById = (req, res) => {
         message: `Error in getPoolEventById: ${err.message}`
       });
     } else {
+      console.log('scrrrr',poolevent);
       const {
         street_name,
         street_number,
@@ -131,44 +136,43 @@ exports.postPoolEvent = (req, res) => {
     });
   }
   const { poolevent, location, description } = req.body;
-  let conn = initConnection();
-  conn.query(`INSERT INTO poolevents SET ?`, poolevent, (error, p) => {
-    if (error) res.status(400).json({ success: false, message: error.message });
-    if (location !== undefined) {
-      location.poolevent_id = p.insertId;
-      conn.query(`INSERT INTO locations SET ?`, location, (error, l) => {
-        if (error) res.status.json({ success: false, message: error.message });
-        description.poolevent_id = p.insertId;
-        const sql = `INSERT INTO descriptions SET ?`;
-        conn.query(sql, description, (error, d) => {
+  savePoolevent(poolevent, (error, pooleventResp) => {
+    console.log(error);
+    if (error) {
+      res.status(400).json({
+        message: error
+      });
+    }
+    location.poolevent_id = pooleventResp.insertId;
+    saveLocation(location, (error, locationResp) => {
+      if (error) {
+        res.status(400).json({
+          message: error
+        });
+      }
+      description.poolevent_id = pooleventResp.insertId;
+      saveDescription(description, (error, descriptionResp) => {
+        if (error) {
+          res.status(400).json({ message: error });
+        }
+        saveNotification("PE_NEW", pooleventResp.insertId, error => {
           if (error) {
-            res.status(400).json({ success: false, message: error.message });
-          } else {
-            saveNotification({
-              poolevent_id: p.insertId,
-              type: "PE_NEW"
-            });
-            global.em.emit("NEW_POOLEVENT");
-            pooleventBadgeChecker("poolevent", error => {
-              if (error) {
-                res
-                  .status(400)
-                  .json({ success: false, message: error.message });
-              }
-              res.status(200).json({
-                success: true,
-                location: l,
-                poolevent: p,
-                description: d
-              });
-            });
+            res.status(400).json({ message: error });
           }
+          pooleventBadgeChecker("poolevent", (error, progress) => {
+            if (error) {
+              res.status(400).json({ message: error });
+            }
+            global.em.emit('NEW_POOLEVENT', pooleventResp.insertId);
+            res.status(200).json({
+              location: locationResp,
+              poolevent: pooleventResp,
+              description: descriptionResp
+            });
+          });
         });
       });
-    } else if (decription !== undefined) {
-    } else {
-      res.json({ p });
-    }
+    });
   });
 };
 

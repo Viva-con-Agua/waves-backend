@@ -3,13 +3,16 @@ const { check } = require("express-validator");
 const { getRegions } = require("../controller/region");
 const { getAllMonths } = require("../controller/month");
 const { initGamificationProfile } = require("../controller/profile");
-const { pooleventBadgeChecker,test } = require("../service/gamification");
-const {postAchievement}  = require("../controller/achievement");
-
-
-
-
-
+const { pooleventBadgeChecker } = require("../service/gamification");
+const { postAchievement } = require("../controller/achievement");
+const {
+  deleteApplication,
+  getApplicationById,
+  getApplicationsEvent,
+  getApplicationsUser,
+  postApplication,
+  putApplication
+} = require("../controller/application");
 
 const {
   deletePoolEvent,
@@ -106,14 +109,9 @@ router.route("/notification/:userId").get(getNotificationByUserId);
 
 router.route("/notification/user/:userId/new").get(getNewNotificationsByUserId);
 
-router
-  .route("/badge")
-  .get(postBadge);
+router.route("/badge").get(postBadge);
 
-
-router
-.route("/badge/user/:userId")
-.get(getAllBadges);
+router.route("/badge/user/:userId").get(getAllBadges);
 
 router.route("/regions").get(getRegions);
 
@@ -125,7 +123,20 @@ router.route("/challenge/checker").get(pooleventBadgeChecker);
 
 router.route("/achievement").post(postAchievement);
 
+router.route("/application").post(postApplication);
 
+router
+  .route("/application/:id")
+  .get(getApplicationById)
+  .put(putApplication)
+  .delete(deleteApplication);
 
+router
+  .route("/application/poolevent/:id")
+  .get(getApplicationsEvent);
+
+router
+  .route("/application/user/:id")
+  .get(getApplicationsUser);
 
 module.exports = router;
