@@ -1,4 +1,5 @@
 const initConnection = require("../config/connectMysql").initConnection;
+const { checkChallengeComplete } = require("../service/gamification");
 
 // @desc get vote by id
 // @route GET /api/v1/vote/:id
@@ -8,7 +9,8 @@ exports.getvoteByCommentId = (req, res) => {
   const conn = initConnection();
   conn.query(
     `SELECT * FROM votes p WHERE p.comment_id='${comment_id}'`,
-    (err, vote) => {
+    (err, votes) => {
+      console.log(votes);
       if (err) {
         res.status(400).json({
           success: false,
@@ -17,7 +19,7 @@ exports.getvoteByCommentId = (req, res) => {
       } else {
         res.status(200).json({
           success: true,
-          data: vote
+          data: votes
         });
       }
     }
@@ -35,7 +37,12 @@ exports.postvote = (req, res) => {
     if (error) {
       res.status(400).json({ success: false, messaage: error.message });
     } else {
-      res.status(200).json({ success: true, data: vote });
+      checkChallengeComplete("votes", (error, resp) => {
+        if (error) {
+          res.status(400).json({ success: false, messaage: error.message });
+        }
+        res.status(200).json({ success: true, data: vote });
+      });
     }
   });
 };
@@ -46,22 +53,17 @@ exports.postvote = (req, res) => {
 exports.deletevote = (req, res) => {
   const { id } = req.params;
   const conn = initConnection();
-  conn.query(
-    `DELETE FROM votes WHERE votes.id='${id}'`,
-    (error, resp) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: `Error in deletevote ${error.message}`
-        });
-      } else {
-        res.status(200).json({
-          success: true,
-          data: resp
-        });
-      }
+  conn.query(`DELETE FROM votes WHERE votes.id='${id}'`, (error, resp) => {
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: `Error in deletevote ${error.message}`
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: resp
+      });
     }
-  );
+  });
 };
-
-

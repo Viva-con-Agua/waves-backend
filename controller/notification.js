@@ -1,28 +1,43 @@
 const { initConnection } = require("../config/connectMysql");
-const {
-  setNotificationDirty,
-  getNonDirtyNotification,
-  getDirtyNotification
-} = require("../service/notification");
 
 exports.getNotificationByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
     const conn = initConnection();
-    const sql = `SELECT n.type,n.created_at, p.name 
-    FROM notifications n 
-    JOIN poolevents p ON p.id=n.poolevent_id 
-    WHERE n.user_id=? ORDER BY n.created_at DESC LIMIT 10;`;
+    const sql = `SELECT * FROM notifications n 
+    join notification_poolevents np 
+    on np.id=n.id
+    WHERE n.user_id=${userId} 
+    union all
+    SELECT * FROM notifications n 
+    join notification_badges nb 
+    on nb.id=n.id
+    WHERE n.user_id=?`;
     conn.query(sql, userId, (error, notifications) => {
       if (!error) {
+        console.log(notifications);
         conn.query(
           `UPDATE notifications SET ? 
           WHERE user_id=${userId} AND dirty=0;`,
           { dirty: 1 },
           (error, resp) => {
-            res.status(200).json({
-              success: true,
-              data: notifications
+            if (error) {
+              res.status(400).json({
+                success: false,
+                message: error
+              });
+            }
+            resolveIds(notifications, (error, resolvedNotification) => {
+              if (error) {
+                res.status(400).json({
+                  success: false,
+                  message: error
+                });
+              }
+              res.status(200).json({
+                success: true,
+                data: resolvedNotification
+              });
             });
           }
         );
@@ -39,6 +54,24 @@ exports.getNotificationByUserId = async (req, res) => {
       message: error.message
     });
   }
+};
+
+const resolveIds = (notifications, callback) => {
+  let res = [];
+  const conn = initConnection();
+  notifications.map((notification, i) => {
+    let sql = `select r.name, r.type from ${notification.type} r WHERE id=${notification.source_id}`;
+    conn.query(sql, (error, resource) => {
+      if (error) {
+        callback(error);
+      } else {
+        res.push({ notification, source: resource[0] });
+        if (notifications.length - 1 == i) {
+          callback(null, res);
+        }
+      }
+    });
+  });
 };
 
 exports.getNewNotificationsByUserId = (req, res) => {
@@ -59,7 +92,12 @@ exports.getNewNotificationsByUserId = (req, res) => {
         });
       }
     });
-  } catch (error) {}
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
 };
 
 exports.getDirtyNotifications = (req, res) => {};

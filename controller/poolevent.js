@@ -1,7 +1,7 @@
 const initConnection = require("../config/connectMysql").initConnection;
 const { saveNotification } = require("../service/notification");
 const { validationResult } = require("express-validator");
-const { pooleventBadgeChecker } = require("../service/gamification");
+const { checkChallengeComplete } = require("../service/gamification");
 const { savePoolevent } = require("../service/poolevent");
 const { saveLocation } = require("../service/location");
 const { saveDescription } = require("../service/description");
@@ -137,7 +137,6 @@ exports.postPoolEvent = (req, res) => {
   }
   const { poolevent, location, description } = req.body;
   savePoolevent(poolevent, (error, pooleventResp) => {
-    console.log(error);
     if (error) {
       res.status(400).json({
         message: error
@@ -155,11 +154,11 @@ exports.postPoolEvent = (req, res) => {
         if (error) {
           res.status(400).json({ message: error });
         }
-        saveNotification("PE_NEW", pooleventResp.insertId, error => {
+        saveNotification("poolevents", pooleventResp.insertId, error => {
           if (error) {
             res.status(400).json({ message: error });
           }
-          pooleventBadgeChecker("poolevent", (error, progress) => {
+          checkChallengeComplete("poolevents", (error, progress) => {
             if (error) {
               res.status(400).json({ message: error });
             }
@@ -245,7 +244,7 @@ exports.getPoolEventByUserId = (req, res) => {
   const { id } = req.params;
   const conn = initConnection();
   conn.query(
-    `UPDATE poolevents SET ? WHERE id =${id};`,
+    `SELECT * FROM poolevents WHERE user_id=${id};`,
     body,
     (error, resp) => {
       if (error) {

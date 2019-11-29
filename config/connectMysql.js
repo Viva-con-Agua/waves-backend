@@ -14,6 +14,7 @@ const connectMysql = () => {
   try {
     const conn = mysql.createConnection(
       {
+        //host: process.env.HOST,
         host: process.env.HOST,
         user: process.env.USER_NAME,
         password: process.env.PASSWORD,

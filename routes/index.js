@@ -3,7 +3,7 @@ const { check } = require("express-validator");
 const { getRegions } = require("../controller/region");
 const { getAllMonths } = require("../controller/month");
 const { initGamificationProfile } = require("../controller/profile");
-const { pooleventBadgeChecker } = require("../service/gamification");
+const { authenticate , receiveToken } = require("../controller/oauth");
 const { postAchievement } = require("../controller/achievement");
 const {
   deleteApplication,
@@ -15,6 +15,7 @@ const {
 } = require("../controller/application");
 
 const {
+  getPoolEventByUserId,
   deletePoolEvent,
   getPoolEventById,
   getPoolEvents,
@@ -84,6 +85,10 @@ router
   .put(putPoolEvent)
   .delete(deletePoolEvent);
 
+  router
+  .route("/poolevent/user/:id")
+  .get(getPoolEventByUserId)
+
 router.route("/comment").post(postComment);
 
 router.route("/comment/:pooleventId").get(getCommentsByPooleventId);
@@ -119,8 +124,6 @@ router.route("/months").get(getAllMonths);
 
 router.route("/profile/init/:userId").get(initGamificationProfile);
 
-router.route("/challenge/checker").get(pooleventBadgeChecker);
-
 router.route("/achievement").post(postAchievement);
 
 router.route("/application").post(postApplication);
@@ -138,5 +141,19 @@ router
 router
   .route("/application/user/:id")
   .get(getApplicationsUser);
+
+router
+  .route("/onboarding")
+  .get(getApplicationsUser);
+
+router
+  .route("/oauth")
+  .get(authenticate);
+
+  router
+  .route("/oauth/token")
+  .get(receiveToken);
+
+
 
 module.exports = router;

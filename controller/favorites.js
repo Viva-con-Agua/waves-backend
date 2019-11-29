@@ -6,7 +6,9 @@ const initConnection = require("../config/connectMysql").initConnection;
 exports.getFavoriteByUserId = (req, res) => {
   const { userId } = req.params;
   const conn = initConnection();
-  const sql = `SELECT * FROM favorites WHERE favorites.user_id='${userId}';`;
+  const sql = `SELECT * FROM favorites f 
+  JOIN poolevents p ON f.poolevent_id=p.id 
+  WHERE f.user_id='${userId}';`;
   conn.query(sql, (err, favorites) => {
     if (err) {
       res.status(400).json({
@@ -25,7 +27,6 @@ exports.getFavoriteByUserId = (req, res) => {
 // @desc  create favorite
 // @route POST /api/v1/favorite
 // @access Private
-//TODO: desc
 exports.postFavorite = (req, res) => {
   const { body } = req;
   let conn = initConnection();
@@ -51,7 +52,8 @@ exports.postFavorite = (req, res) => {
 exports.deleteFavorite = (req, res) => {
   const { id } = req.params;
   const conn = initConnection();
-  const sql = `DELETE FROM favorites WHERE favorites.id='${id}';`;
+  console.log(id);
+  const sql = `DELETE FROM favorites f WHERE f.poolevent_id='${id}';`;
   conn.query(sql, (error, resp) => {
     if (error) {
       res.status(400).json({

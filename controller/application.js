@@ -39,7 +39,10 @@ exports.getApplicationsUser = (req, res) => {
   const { id } = req.params;
   const conn = initConnection();
   conn.query(
-    `SELECT * FROM applications p WHERE p.user_id='${id}';`,
+    `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id,a.id FROM applications a 
+    JOIN poolevents p 
+    on a.poolevent_id=p.id 
+    WHERE a.user_id='${id}';`,
     (error, applications) => {
       if (error) {
         res.status(400).json({

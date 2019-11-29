@@ -1,5 +1,5 @@
 const initConnection = require("../config/connectMysql").initConnection;
-const { pooleventBadgeChecker } = require("../service/gamification");
+const { checkChallengeComplete } = require("../service/gamification");
 
 // @desc get comment by id
 // @route GET /api/v1/comment/:id
@@ -7,7 +7,9 @@ const { pooleventBadgeChecker } = require("../service/gamification");
 exports.getCommentsByPooleventId = (req, res) => {
   const { pooleventId } = req.params;
   const conn = initConnection();
-  const sql = `SELECT c.text, c.id, c.created_at, c.user_id, u.first_name,u.last_name FROM comments c 
+  const sql = `SELECT c.text, c.id, c.created_at, 
+              c.user_id, u.first_name,u.last_name 
+              FROM comments c 
               JOIN users u ON c.user_id=u.id 
               WHERE c.poolevent_id='${pooleventId}';`;
   conn.query(sql, (err, comment) => {
@@ -40,7 +42,7 @@ exports.postComment = (req, res) => {
         messaage: error.message
       });
     } else {
-      pooleventBadgeChecker("comment", (error) => {
+      checkChallengeComplete("comments", (error,resp) => {
         if(error){
           res.status(400).json({
             success: false,
