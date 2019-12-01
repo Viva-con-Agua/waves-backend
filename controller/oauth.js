@@ -1,13 +1,46 @@
 const Axios = require("axios");
-const queryString = require("query-string");
+const { saveUser, getUserById } = require("../service/users");
 
 exports.authenticate = async (req, res) => {
   try {
-    const { code } = req.query;
-    console.log(code);
+    const { code, state } = req.query;
     const s = await fetchToken(code);
     const p = await fetchProfile(s.access_token);
-    res.json({p});
+    getUserById(p.id, (error, user) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          error: error
+        });
+      }
+      if (user.length <= 0) {
+        saveUser(
+          {
+            id: p.id,
+            full_name: p.profiles[0].supporter.fullName.trim(),
+            first_name: p.profiles[0].supporter.lastName.trim(),
+            last_name: p.profiles[0].supporter.firstName.trim(),
+            access_token: s.access_token,
+            role: p.roles[0].role
+          },
+          (error, resp) => {
+            if (error) {
+              res.status(400).json({
+                success: false,
+                error: error
+              });
+            }
+            res.cookie("role", p.roles[0].role);
+            res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
+            res.cookie("access_token", s.access_token).redirect(state);
+          }
+        );
+      } else {
+        res.cookie("role", p.roles[0].role);
+        res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
+        res.cookie("access_token", s.access_token).redirect(state);
+      }
+    });
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -29,11 +62,10 @@ const fetchToken = async code => {
 
 const fetchProfile = async access_token => {
   try {
-    console.log(access_token);
-    const  {data}  = await Axios.get(
-      "https://stage.vivaconagua.org/drops/oauth2/rest/profile?access_token=" + access_token
+    const { data } = await Axios.get(
+      "https://stage.vivaconagua.org/drops/oauth2/rest/profile?access_token=" +
+        access_token
     );
-    console.log(data);
     return data;
   } catch (error) {
     throw error;

@@ -36,7 +36,7 @@ exports.getApplicationsEvent = (req, res) => {
 // @route GET /api/v1/application/user/:id
 // @access Private
 exports.getApplicationsUser = (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(
     `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id,a.id FROM applications a 

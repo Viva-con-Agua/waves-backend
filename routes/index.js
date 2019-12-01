@@ -3,8 +3,10 @@ const { check } = require("express-validator");
 const { getRegions } = require("../controller/region");
 const { getAllMonths } = require("../controller/month");
 const { initGamificationProfile } = require("../controller/profile");
-const { authenticate , receiveToken } = require("../controller/oauth");
+const { authenticate } = require("../controller/oauth");
 const { postAchievement } = require("../controller/achievement");
+const { verify } = require("../middelware/tokenChecker");
+
 const {
   deleteApplication,
   getApplicationById,
@@ -22,27 +24,31 @@ const {
   postPoolEvent,
   putPoolEvent
 } = require("../controller/poolevent");
+
 const {
   deleteComment,
   getCommentsByPooleventId,
   postComment,
   putComment
 } = require("../controller/comment");
+
 const {
   deletevote,
   getvoteByCommentId,
   postvote
 } = require("../controller/vote");
+
 const {
   deleteFavorite,
   getFavoriteByUserId,
   postFavorite
 } = require("../controller/favorites");
+
 const {
   getNewNotificationsByUserId,
-  getDirtyNotifications,
   getNotificationByUserId
 } = require("../controller/notification");
+
 const { postBadge, getAllBadges } = require("../controller/badges");
 
 router.get("/", (req, res) => {
@@ -52,21 +58,17 @@ router.get("/", (req, res) => {
   });
 });
 
+
 router
   .route("/poolevent")
   .get(getPoolEvents)
   .post(
+    verify,
     [
       check("poolevent.name")
         .not()
         .isEmpty(),
-      check("poolevent.website")
-        .isString()
-        .isLength({ min: 5 }),
-      check("poolevent.supporter_lim").isNumeric(),
-      check("poolevent.active_user_only").isBoolean(),
       check("poolevent.state").isString(),
-      check("poolevent.user_id").isNumeric(),
       check("location.street_name").isString(),
       check("location.street_number").isString(),
       check("location.long").isString(),
@@ -82,12 +84,10 @@ router
 router
   .route("/poolevent/:id")
   .get(getPoolEventById)
-  .put(putPoolEvent)
-  .delete(deletePoolEvent);
+  .put(putPoolEvent)//private
+  .delete(deletePoolEvent);//private
 
-  router
-  .route("/poolevent/user/:id")
-  .get(getPoolEventByUserId)
+router.route("/poolevent/user/me").get(verify, getPoolEventByUserId); //private
 
 router.route("/comment").post(postComment);
 
@@ -104,11 +104,11 @@ router.route("/vote/:comment_id").get(getvoteByCommentId);
 
 router.route("/vote/:id").delete(deletevote);
 
-router.route("/favorite/:userId").get(getFavoriteByUserId);
+router.route("/favorite/:userId").get(verify, getFavoriteByUserId);
 
 router.route("/favorite/:id").delete(deleteFavorite);
 
-router.route("/favorite").post(postFavorite);
+router.route("/favorite").post(verify, postFavorite);
 
 router.route("/notification/:userId").get(getNotificationByUserId);
 
@@ -134,26 +134,12 @@ router
   .put(putApplication)
   .delete(deleteApplication);
 
-router
-  .route("/application/poolevent/:id")
-  .get(getApplicationsEvent);
+router.route("/application/poolevent/:id").get(getApplicationsEvent);
 
-router
-  .route("/application/user/:id")
-  .get(getApplicationsUser);
+router.route("/application/user/:id").get(verify, getApplicationsUser);
 
-router
-  .route("/onboarding")
-  .get(getApplicationsUser);
+router.route("/onboarding").get(getApplicationsUser);
 
-router
-  .route("/oauth")
-  .get(authenticate);
-
-  router
-  .route("/oauth/token")
-  .get(receiveToken);
-
-
+router.route("/oauth").get(authenticate);
 
 module.exports = router;

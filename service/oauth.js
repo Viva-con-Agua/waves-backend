@@ -1,5 +1,4 @@
 exports.authenticate = (req, res) => {
-  console.log(code);
   try {
     const { code } = req;
     res.status(200).json({ code });

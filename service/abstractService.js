@@ -1,4 +1,5 @@
 const { initConnection } = require("../config/connectMysql");
+
 exports.countEntriesByTableName = (tableName, userId, callback) => {
   const conn = initConnection();
   let sql = `SELECT COUNT(*) AS count FROM ${tableName}

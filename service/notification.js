@@ -36,6 +36,7 @@ exports.saveNotification = (type, source_id, callback) => {
 
 const savePooleventNotification = (type, notification, callback) => {
   const conn = initConnection();
+  console.log(notification);
   const sql = `INSERT INTO notification_${type} SET ?;`;
   conn.query(sql, notification, (error, resp) => {
     if (error) {

@@ -4,7 +4,6 @@ const { sendNewBadge, saveNotification } = require("../service/notification");
 
 //checks if a challenge is completed and fires a notification if so
 exports.checkChallengeComplete = (type, callback) => {
-  console.log(type);
   try {
     countEntriesByTableName(type, 1, (error, num) => {
       console.log(num);

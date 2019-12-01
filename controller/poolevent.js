@@ -136,6 +136,7 @@ exports.postPoolEvent = (req, res) => {
     });
   }
   const { poolevent, location, description } = req.body;
+  poolevent.user_id = req.user.id;
   savePoolevent(poolevent, (error, pooleventResp) => {
     if (error) {
       res.status(400).json({
@@ -240,12 +241,10 @@ exports.putPoolEvent = (req, res) => {
 // @route PUT /api/v1/poolevent/:id
 // @access Private
 exports.getPoolEventByUserId = (req, res) => {
-  const { body } = req;
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(
-    `SELECT * FROM poolevents WHERE user_id=${id};`,
-    body,
+    `SELECT * FROM poolevents WHERE user_id='${id}';`,
     (error, resp) => {
       if (error) {
         res.status(400).json({

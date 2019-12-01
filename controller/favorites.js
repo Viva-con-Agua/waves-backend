@@ -5,10 +5,11 @@ const initConnection = require("../config/connectMysql").initConnection;
 // @access private
 exports.getFavoriteByUserId = (req, res) => {
   const { userId } = req.params;
+  const { user } = req;
   const conn = initConnection();
   const sql = `SELECT * FROM favorites f 
   JOIN poolevents p ON f.poolevent_id=p.id 
-  WHERE f.user_id='${userId}';`;
+  WHERE f.user_id='${user.id}';`;
   conn.query(sql, (err, favorites) => {
     if (err) {
       res.status(400).json({
@@ -28,8 +29,9 @@ exports.getFavoriteByUserId = (req, res) => {
 // @route POST /api/v1/favorite
 // @access Private
 exports.postFavorite = (req, res) => {
-  const { body } = req;
+  const { body, user } = req;
   let conn = initConnection();
+  body.user_id = user.id;
   const sql = `INSERT INTO favorites SET ?`;
   conn.query(sql, body, (error, favorite) => {
     if (error) {

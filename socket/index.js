@@ -3,9 +3,7 @@ const socket = io => {
     //TODO: save to database
     console.log("event listner: ", global.em.listenerCount("NEW_POOLEVENT"));
 
-    global.em.on("NEW_POOLEVENT", (poolevent_id) => {
-      console.log(poolevent_id);
-
+    global.em.on("NEW_POOLEVENT", poolevent_id => {
       socket.emit("NEW_POOLEVENT", poolevent_id);
       console.log("event listner: ", global.em.listenerCount("NEW_POOLEVENT"));
     });
