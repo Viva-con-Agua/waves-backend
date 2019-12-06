@@ -33,6 +33,9 @@ exports.getCommentsByPooleventId = (req, res) => {
 //TODO: desc
 exports.postComment = (req, res) => {
   const { body } = req;
+  const { id } = req.user;
+  body.user_id = id;
+  console.log(body);
   let conn = initConnection();
   const sql = `INSERT INTO comments SET ?`;
   conn.query(sql, body, (error, comment) => {
@@ -42,8 +45,8 @@ exports.postComment = (req, res) => {
         messaage: error.message
       });
     } else {
-      checkChallengeComplete("comments", (error,resp) => {
-        if(error){
+      checkChallengeComplete("comments", id, (error, resp) => {
+        if (error) {
           res.status(400).json({
             success: false,
             messaage: error.message
@@ -62,7 +65,7 @@ exports.postComment = (req, res) => {
 // @route DELETE /api/v1/comment/:id
 // @access Private
 exports.deleteComment = (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(`DELETE FROM WHERE comments.id='${id}';`, (error, resp) => {
     if (error) {
@@ -84,7 +87,8 @@ exports.deleteComment = (req, res) => {
 // @access Private
 exports.putComment = (req, res) => {
   const { body } = req;
-  const { id } = req.params;
+  const { id } = req.user;
+  body.user_id = id;
   const conn = initConnection();
   conn.query(`UPDATE comments SET ? WHERE id =${id};`, body, (error, resp) => {
     if (error) {

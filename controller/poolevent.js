@@ -57,7 +57,7 @@ exports.getPoolEvents = (req, res, next) => {
 // @route GET /api/v1/poolevent/:id
 // @access Public
 exports.getPoolEventById = (req, res) => {
-  console.log('scoop');
+  console.log("scoop");
   const { id } = req.params;
   const conn = initConnection();
   const sql = `SELECT * FROM poolevents AS p  
@@ -71,30 +71,16 @@ exports.getPoolEventById = (req, res) => {
         message: `Error in getPoolEventById: ${err.message}`
       });
     } else {
-      console.log('scrrrr',poolevent);
-      const {
-        street_name,
-        street_number,
-        country,
-        city,
-        post_code,
-        desc,
-        long,
-        lat,
-        name,
-        event_start,
-        event_end,
-        application_start,
-        application_end,
-        website,
-        supporter_lim,
-        state,
-        text,
-        html
-      } = poolevent[0];
-      res.status(200).json({
-        success: true,
-        data: {
+      if (poolevent.length > 0) {
+        const {
+          street_name,
+          street_number,
+          country,
+          city,
+          post_code,
+          desc,
+          long,
+          lat,
           name,
           event_start,
           event_end,
@@ -103,22 +89,39 @@ exports.getPoolEventById = (req, res) => {
           website,
           supporter_lim,
           state,
-          location: {
-            street_name,
-            street_number,
-            country,
-            city,
-            post_code,
-            desc,
-            long,
-            lat
-          },
-          description: {
-            text,
-            html
+          text,
+          html
+        } = poolevent[0];
+        res.status(200).json({
+          success: true,
+          data: {
+            name,
+            event_start,
+            event_end,
+            application_start,
+            application_end,
+            website,
+            supporter_lim,
+            state,
+            location: {
+              street_name,
+              street_number,
+              country,
+              city,
+              post_code,
+              desc,
+              long,
+              lat
+            },
+            description: {
+              text,
+              html
+            }
           }
-        }
-      });
+        });
+      } else {
+        res.status(400).json({ success: false, error: "Poolevent not found" });
+      }
     }
   });
 };
@@ -159,17 +162,22 @@ exports.postPoolEvent = (req, res) => {
           if (error) {
             res.status(400).json({ message: error });
           }
-          checkChallengeComplete("poolevents", (error, progress) => {
-            if (error) {
-              res.status(400).json({ message: error });
+          console.log(req.user.id);
+          checkChallengeComplete(
+            "poolevents",
+            req.user.id,
+            (error, progress) => {
+              if (error) {
+                res.status(400).json({ message: error });
+              }
+              global.em.emit("NEW_POOLEVENT", pooleventResp.insertId);
+              res.status(200).json({
+                location: locationResp,
+                poolevent: pooleventResp,
+                description: descriptionResp
+              });
             }
-            global.em.emit('NEW_POOLEVENT', pooleventResp.insertId);
-            res.status(200).json({
-              location: locationResp,
-              poolevent: pooleventResp,
-              description: descriptionResp
-            });
-          });
+          );
         });
       });
     });

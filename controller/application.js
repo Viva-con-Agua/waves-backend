@@ -62,7 +62,7 @@ exports.getApplicationsUser = (req, res) => {
 // @route GET /api/v1/application/:id
 // @access Private
 exports.getApplicationById = (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(
     `SELECT * FROM applications p WHERE p.id='${id}';`,
@@ -87,6 +87,9 @@ exports.getApplicationById = (req, res) => {
 // @access Private
 exports.postApplication = (req, res) => {
   const { body } = req;
+  const { id } = req.user;
+  body.user_id = id;
+  console.log(body);
   const conn = initConnection();
   conn.query(`INSERT INTO applications SET ?`, body, (error, response) => {
     if (error) {
@@ -107,7 +110,7 @@ exports.postApplication = (req, res) => {
 // @route DELETE /api/v1/application/:id
 // @access Private
 exports.deleteApplication = (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(
     `DELETE FROM applications WHERE applications.id='${id}';`,
@@ -132,10 +135,10 @@ exports.deleteApplication = (req, res) => {
 // @access Private
 exports.putApplication = (req, res) => {
   const { body } = req;
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(
-    `UPDATE applications SET ? WHERE id =${id};`,
+    `UPDATE applications SET ? WHERE id=${id};`,
     body,
     (error, resp) => {
       if (error) {

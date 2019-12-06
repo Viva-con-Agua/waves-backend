@@ -92,3 +92,9 @@ const initChallengeProgressForAllUsers = (badgeId, type, callback) => {
     callback(error);
   }
 };
+
+
+exports.getAverageBadgeComplete = (req,res)=>{
+  const conn = initConnection()
+  conn.query('SELECT * badge_progress WHERE ')
+}

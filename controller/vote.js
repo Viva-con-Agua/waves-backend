@@ -32,6 +32,8 @@ exports.getvoteByCommentId = (req, res) => {
 //TODO: desc
 exports.postvote = (req, res) => {
   const { body } = req;
+  const { id } = req.user;
+  body.user_id = id;
   let conn = initConnection();
   conn.query(`INSERT INTO votes SET ?`, body, (error, vote) => {
     if (error) {

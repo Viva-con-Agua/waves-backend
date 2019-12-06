@@ -2,23 +2,23 @@ const { initConnection } = require("../config/connectMysql");
 
 exports.getNotificationByUserId = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.user;
     const conn = initConnection();
     const sql = `SELECT * FROM notifications n 
     join notification_poolevents np 
     on np.id=n.id
-    WHERE n.user_id=${userId} 
+    WHERE n.user_id='${id}' 
     union all
     SELECT * FROM notifications n 
     join notification_badges nb 
     on nb.id=n.id
     WHERE n.user_id=?`;
-    conn.query(sql, userId, (error, notifications) => {
+    conn.query(sql, id, (error, notifications) => {
+      console.log(notifications);
       if (!error) {
-        console.log(notifications);
         conn.query(
           `UPDATE notifications SET ? 
-          WHERE user_id=${userId} AND dirty=0;`,
+          WHERE user_id='${id}' AND dirty=0;`,
           { dirty: 1 },
           (error, resp) => {
             if (error) {
@@ -76,9 +76,11 @@ const resolveIds = (notifications, callback) => {
 
 exports.getNewNotificationsByUserId = (req, res) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.user;
+    console.log(id);
     const conn = initConnection();
-    const sql = `SELECT * FROM notifications WHERE user_id=${userId} AND dirty=0;`;
+    const sql = `SELECT * FROM notifications WHERE user_id='${id}' AND dirty=0;`;
+    console.log(sql);
     conn.query(sql, (error, newNotifications) => {
       if (!error) {
         res.status(200).json({

@@ -4,7 +4,7 @@ const initConnection = require("../config/connectMysql").initConnection;
 // @route GET /api/v1/Badge/:id
 // @access Public
 exports.getAllBadges = (req, res) => {
-  const { userId } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
   conn.query(
     `SELECT b.name, 
@@ -16,7 +16,7 @@ exports.getAllBadges = (req, res) => {
     FROM badges b 
     JOIN badge_progress bp ON b.id=bp.badge_id 
     JOIN challenges c ON c.badge_id=b.id  
-    WHERE bp.user_id=${userId}`,
+    WHERE bp.user_id='${id}'`,
     (err, badges) => {
       if (err) {
         res.status(400).json({
@@ -38,7 +38,8 @@ exports.getAllBadges = (req, res) => {
 // @access Private
 //TODO: desc
 exports.postBadge = (req, res) => {
-  const { body } = req;
+  const { body, user } = req;
+  body.user_id = user.id;
   let conn = initConnection();
   conn.query(`INSERT INTO badges SET ?`, body, (error, Badge) => {
     if (error) {

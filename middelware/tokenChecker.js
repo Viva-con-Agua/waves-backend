@@ -11,7 +11,7 @@ exports.verify = (req, res, next) => {
         if (error) {
           res.status(400).json({ success: false, error: error });
         }
-        if (user.length !== 0) {
+        if (user.length > 0) {
           req.user = user[0];
           next(null, user);
         } else {

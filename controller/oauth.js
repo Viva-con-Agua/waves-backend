@@ -1,12 +1,14 @@
 const Axios = require("axios");
 const { saveUser, getUserById } = require("../service/users");
+const { initNewUsersAchievements } = require("../service/gamification");
 
 exports.authenticate = async (req, res) => {
   try {
     const { code, state } = req.query;
     const s = await fetchToken(code);
     const p = await fetchProfile(s.access_token);
-    getUserById(p.id, (error, user) => {
+    console.log(p.profiles[0].supporter);
+    getUserById(p.id, async (error, user) => {
       if (error) {
         res.status(400).json({
           success: false,
@@ -14,7 +16,7 @@ exports.authenticate = async (req, res) => {
         });
       }
       if (user.length <= 0) {
-        saveUser(
+        await saveUser(
           {
             id: p.id,
             full_name: p.profiles[0].supporter.fullName.trim(),
@@ -30,9 +32,14 @@ exports.authenticate = async (req, res) => {
                 error: error
               });
             }
-            res.cookie("role", p.roles[0].role);
-            res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
-            res.cookie("access_token", s.access_token).redirect(state);
+            initNewUsersAchievements(p.id, error => {
+              if (error) {
+                res.json(400).json({ success: false, error });
+              }
+              res.cookie("role", p.roles[0].role);
+              res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
+              res.cookie("access_token", s.access_token).redirect(state);
+            });
           }
         );
       } else {
@@ -66,6 +73,7 @@ const fetchProfile = async access_token => {
       "https://stage.vivaconagua.org/drops/oauth2/rest/profile?access_token=" +
         access_token
     );
+
     return data;
   } catch (error) {
     throw error;

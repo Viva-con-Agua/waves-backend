@@ -4,7 +4,6 @@ const initConnection = require("../config/connectMysql").initConnection;
 // @route GET /api/v1/favorite/:id
 // @access private
 exports.getFavoriteByUserId = (req, res) => {
-  const { userId } = req.params;
   const { user } = req;
   const conn = initConnection();
   const sql = `SELECT * FROM favorites f 
@@ -52,9 +51,8 @@ exports.postFavorite = (req, res) => {
 // @route DELETE /api/v1/favorite/:id
 // @access Private
 exports.deleteFavorite = (req, res) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const conn = initConnection();
-  console.log(id);
   const sql = `DELETE FROM favorites f WHERE f.poolevent_id='${id}';`;
   conn.query(sql, (error, resp) => {
     if (error) {
