@@ -1,9 +1,6 @@
-const { initConnection } = require("../config/connectMysql");
-
 exports.getNumOfPeByUserId = (userId, callback) => {
   try {
-    const conn = initConnection();
-    conn.query(
+    global.conn.query(
       "SELECT COUNT(*) as count FROM poolevents p WHERE user_id= ?;",
       userId,
       (error, numPoolevents) => {
@@ -21,9 +18,23 @@ exports.getNumOfPeByUserId = (userId, callback) => {
 
 exports.savePoolevent = (poolevent, callback) => {
   try {
-    const conn = initConnection();
     const sql = "INSERT INTO poolevents SET ?;";
-    conn.query(sql, poolevent ,(error, resp) => {
+    global.conn.query(sql, poolevent, (error, resp) => {
+      if (!error) {
+        callback(null, resp);
+      } else {
+        callback(error);
+      }
+    });
+  } catch (error) {
+    callback(error);
+  }
+};
+
+exports.incrementFaveCount = (id, callback) => {
+  try {
+    const sql = "UPDATE poolevents SET fave_count=fave_count+1 WHERE id=?;";
+    global.conn.query(sql, id, (error, resp) => {
       if (!error) {
         callback(null, resp);
       } else {

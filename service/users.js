@@ -1,9 +1,6 @@
-const { initConnection } = require("../config/connectMysql");
-
 exports.getAllUsersIds = callback => {
-  const conn = initConnection();
   const sql = "SELECT users.id FROM users";
-  conn.query(sql, (error, rows) => {
+  global.conn.query(sql, (error, rows) => {
     if (!error) {
       callback(null, rows);
     } else {
@@ -14,9 +11,8 @@ exports.getAllUsersIds = callback => {
 
 exports.saveUser = (user, callback) => {
   try {
-    const conn = initConnection();
     const sql = "INSERT INTO users SET ?;";
-    conn.query(sql, user, (error, resp) => {
+    global.conn.query(sql, user, (error, resp) => {
       if (error) {
         callback(error);
       }
@@ -29,9 +25,8 @@ exports.saveUser = (user, callback) => {
 
 exports.getUserById = (id, callback) => {
   try {
-    const conn = initConnection();
     const sql = "SELECT * FROM users WHERE id=?;";
-    conn.query(sql, id, (error, user) => {
+    global.conn.query(sql, id, (error, user) => {
       if (error) {
         callback(error);
       }

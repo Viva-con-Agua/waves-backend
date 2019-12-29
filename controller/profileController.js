@@ -2,12 +2,12 @@ const { initConnection } = require("../config/connectMysql");
 exports.initGamificationProfile = (req, res) => {
   try {
     const { userId } = req.params;
-    const conn = initConnection();x
-    conn.query("SELECT b.id FROM badges b;", async (error, badgeIds) => {
+    const conn = initConnection();
+   global.conn.query("SELECT b.id FROM badges b;", async (error, badgeIds) => {
       const progress = await badgeIds.map(({ id }) => {
         return [JSON.parse(userId), id];
       });
-      conn.query(
+     global.conn.query(
         "INSERT INTO badge_progress (user_id, badge_id) VALUES ?",
         [progress],
         (error, resp) => {

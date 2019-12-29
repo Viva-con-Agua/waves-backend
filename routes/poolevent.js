@@ -9,7 +9,7 @@ const {
   getPoolEvents,
   postPoolEvent,
   putPoolEvent
-} = require("../controller/poolevent");
+} = require("../controller/pooleventController");
 
 router
   .route("/")
@@ -36,9 +36,9 @@ router
 router
   .route("/:id")
   .get(getPoolEventById)
-  .put(putPoolEvent) //private
-  .delete(deletePoolEvent); //private
+  .put(verify, putPoolEvent)
+  .delete(verify, deletePoolEvent); //private
 
 router.route("/user/me").get(verify, getPoolEventByUserId); //private
 
-module.exports = router
+module.exports = router;

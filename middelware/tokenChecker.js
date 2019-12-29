@@ -1,10 +1,13 @@
-const { initConnection } = require("../config/connectMysql");
-
-exports.verify = (req, res, next) => {
+exports.verify = async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    const conn = initConnection();
-    const [bearer, access_token] = authorization.split(" ");
+    const [bearer, access_token] = await authorization.split(" ");
+    if (!access_token) {
+      rs.status(400).json({
+        success: false,
+        error: "unauthorized, access token required"
+      });
+    }
     conn.query(
       `SELECT * FROM users WHERE access_token='${access_token}'`,
       (error, user) => {

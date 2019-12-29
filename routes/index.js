@@ -1,33 +1,21 @@
 const router = require("express").Router();
-const { getRegions } = require("../controller/region");
-const { getAllMonths } = require("../controller/month");
-const { initGamificationProfile } = require("../controller/profile");
-const { authenticate } = require("../controller/oauth");
-const { postAchievement } = require("../controller/achievement");
+const { getRegions } = require("../controller/regionController");
+const { getAllMonths } = require("../controller/monthController");
+const { initGamificationProfile } = require("../controller/profileController");
+const { authenticate } = require("../controller/oauthController");
+const { postAchievement } = require("../controller/achievementConroller");
+const { getInformation } = require("../controller/infoController");
 const { verify } = require("../middelware/tokenChecker");
+const { checkProfileComplete } = require("../service/gamification");
+
+const { getApplicationsUser } = require("../controller/applicationController");
 
 const {
-  deleteApplication,
-  getApplicationById,
-  getApplicationsEvent,
-  getApplicationsUser,
-  postApplication,
-  putApplication
-} = require("../controller/application");
-
-
-
-
-
-
-
-const {
-  deleteFavorite,
-  getFavoriteByUserId,
-  postFavorite
-} = require("../controller/favorites");
-
-const { postBadge, getAllBadges } = require("../controller/badges");
+  postBadge,
+  getAllBadgesByUserId,
+  getAllBadges,
+  averageUserCompletedAchievement
+} = require("../controller/badgesController");
 
 router.get("/", (req, res) => {
   res.json({
@@ -36,22 +24,11 @@ router.get("/", (req, res) => {
   });
 });
 
+router.route("/badge").post(postBadge);
 
+router.route("/badge/user/:userId").get(verify, getAllBadgesByUserId);
 
-
-
-
-router.route("/favorite/:userId").get(verify, getFavoriteByUserId); //private
-
-router.route("/favorite/:id").delete(verify, deleteFavorite); //private
-
-router.route("/favorite").post(verify, postFavorite); //private
-
-
-
-router.route("/badge").get(postBadge);
-
-router.route("/badge/user/:userId").get(verify, getAllBadges);
+router.route("/badge").get(verify, getAllBadges);
 
 router.route("/regions").get(getRegions);
 
@@ -61,10 +38,14 @@ router.route("/profile/init/:userId").get(initGamificationProfile);
 
 router.route("/achievement").post(postAchievement);
 
-
-
 router.route("/onboarding").get(getApplicationsUser);
 
 router.route("/oauth").get(authenticate);
+
+router.route("/info").get(verify, getInformation);
+
+router.route("/achievement/avg/:id").get(averageUserCompletedAchievement);
+
+router.route("/test").get((req,res)=>{checkProfileComplete('4a74141e-c2c0-46a0-9c0c-84bef8be7d0f')});
 
 module.exports = router;

@@ -1,12 +1,10 @@
-const initConnection = require("../config/connectMysql").initConnection;
-
+const { checkChallengeComplete } = require("../service/gamification");
 // @desc get all applications by poolevent
 // @route GET /api/v1/application/event/:id
 // @access Private
 exports.getApplicationsEvent = (req, res) => {
   const { id } = req.params;
-  const conn = initConnection();
-  conn.query(
+  global.conn.query(
     `SELECT a.created_at,
     a.id as application_id,
     u.id as user_id,
@@ -24,6 +22,7 @@ exports.getApplicationsEvent = (req, res) => {
           message: error.message
         });
       }
+
       res.status(200).json({
         success: true,
         data: applications
@@ -37,8 +36,7 @@ exports.getApplicationsEvent = (req, res) => {
 // @access Private
 exports.getApplicationsUser = (req, res) => {
   const { id } = req.user;
-  const conn = initConnection();
-  conn.query(
+  global.conn.query(
     `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id,a.id FROM applications a 
     JOIN poolevents p 
     on a.poolevent_id=p.id 
@@ -50,6 +48,7 @@ exports.getApplicationsUser = (req, res) => {
           message: error.message
         });
       }
+
       res.status(200).json({
         success: true,
         data: applications
@@ -63,8 +62,7 @@ exports.getApplicationsUser = (req, res) => {
 // @access Private
 exports.getApplicationById = (req, res) => {
   const { id } = req.user;
-  const conn = initConnection();
-  conn.query(
+  global.conn.query(
     `SELECT * FROM applications p WHERE p.id='${id}';`,
     (err, application) => {
       if (err) {
@@ -89,21 +87,25 @@ exports.postApplication = (req, res) => {
   const { body } = req;
   const { id } = req.user;
   body.user_id = id;
-  console.log(body);
-  const conn = initConnection();
-  conn.query(`INSERT INTO applications SET ?`, body, (error, response) => {
-    if (error) {
-      res.status(400).json({
-        success: false,
-        message: `Error in create application: ${error.message}`
-      });
-    } else {
-      res.status(200).json({
-        success: true,
-        data: response
-      });
+  global.conn.query(
+    `INSERT INTO applications SET ?`,
+    body,
+    (error, response) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: `Error in create application: ${error.message}`
+        });
+      } else {
+        checkChallengeComplete("applications", id, (error, progress) => {
+          res.status(200).json({
+            success: true,
+            data: response
+          });
+        });
+      }
     }
-  });
+  );
 };
 
 // @desc delete application by id
@@ -111,8 +113,8 @@ exports.postApplication = (req, res) => {
 // @access Private
 exports.deleteApplication = (req, res) => {
   const { id } = req.user;
-  const conn = initConnection();
-  conn.query(
+
+  global.conn.query(
     `DELETE FROM applications WHERE applications.id='${id}';`,
     (error, resp) => {
       if (error) {
@@ -136,8 +138,8 @@ exports.deleteApplication = (req, res) => {
 exports.putApplication = (req, res) => {
   const { body } = req;
   const { id } = req.user;
-  const conn = initConnection();
-  conn.query(
+
+  global.conn.query(
     `UPDATE applications SET ? WHERE id=${id};`,
     body,
     (error, resp) => {

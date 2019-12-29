@@ -1,4 +1,3 @@
-const { initConnection } = require("../config/connectMysql");
 const { getAllUsersIds } = require("../service/users");
 
 exports.saveNotification = (type, source_id, callback) => {
@@ -8,12 +7,12 @@ exports.saveNotification = (type, source_id, callback) => {
     if (error) {
       callback(error);
     }
-    const conn = initConnection();
+    
     userIds.map(({ id }, i) => {
       notification.user_id = id;
       console.log(notification);
       const sql = "INSERT INTO notifications SET ?;";
-      conn.query(sql, notification, (error, resp) => {
+      global.conn.query(sql, notification, (error, resp) => {
         if (error) {
           callback(error);
         }
@@ -36,10 +35,10 @@ exports.saveNotification = (type, source_id, callback) => {
 };
 
 const savePooleventNotification = (type, notification, callback) => {
-  const conn = initConnection();
+  
   console.log(notification);
   const sql = `INSERT INTO notification_${type} SET ?;`;
-  conn.query(sql, notification, (error, resp) => {
+  global.conn.query(sql, notification, (error, resp) => {
     if (error) {
       callback(error);
     }
@@ -48,11 +47,11 @@ const savePooleventNotification = (type, notification, callback) => {
 };
 
 exports.getNonDirtyNotification = (user_id, callback) => {
-  const conn = initConnection();
+  
   const sql = `SELECT * FROM notifications n 
                WHERE n.dirty=0 
                AND n.user_id="${user_id}" ORDER by created_at ASC;`;
-  conn.query(sql, (error, numNotification) => {
+  global.conn.query(sql, (error, numNotification) => {
     if (!error) {
       callback(error, numNotification);
     } else {
@@ -63,12 +62,12 @@ exports.getNonDirtyNotification = (user_id, callback) => {
 
 exports.getDirtyNotification = (user_id, callback) => {
   try {
-    const conn = initConnection();
+    
     const sql = `SELECT * FROM notifications n join notification_poolevents np on np.id=n.id
                   union all
                   SELECT * FROM notifications n join notification_badges nb on nb.id=n.id
                  WHERE user_id="${user_id}";`;
-    conn.query(sql, (error, notifications) => {
+    global.conn.query(sql, (error, notifications) => {
       if (!error) {
         callback(notifications);
       } else {
@@ -104,9 +103,8 @@ exports.saveNotificationByUser = (
   trigger_id,
   callback
 ) => {
-  const conn = initConnection();
-  console.log('-->', type);
-  conn.query(
+
+  global.conn.query(
     "INSERT INTO notifications SET ?",
     {
       user_id,
@@ -119,7 +117,7 @@ exports.saveNotificationByUser = (
       if (error) {
         callback(error);
       }
-      conn.query(
+      global.conn.query(
         `INSERT INTO notification_${type} SET ?`,
         {
           id: resp.insertId,

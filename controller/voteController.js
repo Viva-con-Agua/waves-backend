@@ -1,4 +1,3 @@
-const initConnection = require("../config/connectMysql").initConnection;
 const { checkChallengeComplete } = require("../service/gamification");
 
 // @desc get vote by id
@@ -6,11 +5,10 @@ const { checkChallengeComplete } = require("../service/gamification");
 // @access Public
 exports.getvoteByCommentId = (req, res) => {
   const { comment_id } = req.params;
-  const conn = initConnection();
-  conn.query(
+
+  global.conn.query(
     `SELECT * FROM votes p WHERE p.comment_id='${comment_id}'`,
     (err, votes) => {
-      console.log(votes);
       if (err) {
         res.status(400).json({
           success: false,
@@ -34,12 +32,12 @@ exports.postvote = (req, res) => {
   const { body } = req;
   const { id } = req.user;
   body.user_id = id;
-  let conn = initConnection();
-  conn.query(`INSERT INTO votes SET ?`, body, (error, vote) => {
+  
+  global.conn.query(`INSERT INTO votes SET ?`, body, (error, vote) => {
     if (error) {
       res.status(400).json({ success: false, messaage: error.message });
     } else {
-      checkChallengeComplete("votes", (error, resp) => {
+      checkChallengeComplete("votes", id, (error, resp) => {
         if (error) {
           res.status(400).json({ success: false, messaage: error.message });
         }
@@ -54,18 +52,21 @@ exports.postvote = (req, res) => {
 // @access Private
 exports.deletevote = (req, res) => {
   const { id } = req.params;
-  const conn = initConnection();
-  conn.query(`DELETE FROM votes WHERE votes.id='${id}'`, (error, resp) => {
-    if (error) {
-      res.status(400).json({
-        success: false,
-        message: `Error in deletevote ${error.message}`
-      });
-    } else {
-      res.status(200).json({
-        success: true,
-        data: resp
-      });
+
+  global.conn.query(
+    `DELETE FROM votes WHERE votes.id='${id}'`,
+    (error, resp) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: `Error in deletevote ${error.message}`
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          data: resp
+        });
+      }
     }
-  });
+  );
 };

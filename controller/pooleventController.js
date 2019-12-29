@@ -1,4 +1,3 @@
-const initConnection = require("../config/connectMysql").initConnection;
 const { saveNotification } = require("../service/notification");
 const { validationResult } = require("express-validator");
 const { checkChallengeComplete } = require("../service/gamification");
@@ -24,7 +23,7 @@ exports.getPoolEvents = (req, res, next) => {
   if (region) {
     filter += `AND l.city="${region}"`;
   }
-  const conn = initConnection();
+
   const sql = `SELECT 
   p.id, 
   p.name,
@@ -39,13 +38,14 @@ exports.getPoolEvents = (req, res, next) => {
   FROM poolevents p 
   JOIN locations l ON l.poolevent_id=p.id 
   WHERE p.state="RELEASED" ${filter} LIMIT ${limit};`;
-  conn.query(sql, (error, poolevents) => {
+  global.conn.query(sql, (error, poolevents) => {
     if (error) {
       res.status(400).json({
         success: false,
         message: error.message
       });
     }
+
     res.status(200).json({
       success: true,
       data: poolevents
@@ -57,14 +57,12 @@ exports.getPoolEvents = (req, res, next) => {
 // @route GET /api/v1/poolevent/:id
 // @access Public
 exports.getPoolEventById = (req, res) => {
-  console.log("scoop");
   const { id } = req.params;
-  const conn = initConnection();
   const sql = `SELECT * FROM poolevents AS p  
               JOIN locations l ON p.id=l.poolevent_id 
               JOIN descriptions d ON d.poolevent_id=p.id 
               WHERE p.id=${id};`;
-  conn.query(sql, (err, poolevent) => {
+  global.conn.query(sql, (err, poolevent) => {
     if (err) {
       res.status(400).json({
         success: false,
@@ -73,6 +71,7 @@ exports.getPoolEventById = (req, res) => {
     } else {
       if (poolevent.length > 0) {
         const {
+          id,
           street_name,
           street_number,
           country,
@@ -92,9 +91,11 @@ exports.getPoolEventById = (req, res) => {
           text,
           html
         } = poolevent[0];
+
         res.status(200).json({
           success: true,
           data: {
+            id,
             name,
             event_start,
             event_end,
@@ -132,6 +133,7 @@ exports.getPoolEventById = (req, res) => {
 //TODO: desc
 exports.postPoolEvent = (req, res) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     return res.status(422).json({
       success: false,
@@ -162,7 +164,6 @@ exports.postPoolEvent = (req, res) => {
           if (error) {
             res.status(400).json({ message: error });
           }
-          console.log(req.user.id);
           checkChallengeComplete(
             "poolevents",
             req.user.id,
@@ -171,6 +172,7 @@ exports.postPoolEvent = (req, res) => {
                 res.status(400).json({ message: error });
               }
               global.em.emit("NEW_POOLEVENT", pooleventResp.insertId);
+
               res.status(200).json({
                 location: locationResp,
                 poolevent: pooleventResp,
@@ -189,14 +191,13 @@ exports.postPoolEvent = (req, res) => {
 // @access Private
 exports.deletePoolEvent = (req, res) => {
   const { id } = req.params;
-  const conn = initConnection();
-  conn.query(
+  global.conn.query(
     `DELETE FROM locations l WHERE l.poolevent_id=${id}`,
     (error, l) => {
-      conn.query(
+      global.conn.query(
         `DELETE FROM descriptions d WHERE d.poolevent_id=${id}`,
         (error, d) => {
-          conn.query(
+          global.conn.query(
             `DELETE FROM poolevents WHERE poolevents.id='${id} ';`,
             (error, resp) => {
               if (error) {
@@ -224,8 +225,7 @@ exports.deletePoolEvent = (req, res) => {
 exports.putPoolEvent = (req, res) => {
   const { body } = req;
   const { id } = req.params;
-  const conn = initConnection();
-  conn.query(
+  global.conn.query(
     `UPDATE poolevents SET ? WHERE id =${id};`,
     body,
     (error, resp) => {
@@ -250,9 +250,32 @@ exports.putPoolEvent = (req, res) => {
 // @access Private
 exports.getPoolEventByUserId = (req, res) => {
   const { id } = req.user;
-  const conn = initConnection();
-  conn.query(
+
+  global.conn.query(
     `SELECT * FROM poolevents WHERE user_id='${id}';`,
+    (error, resp) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: `Error in putPoolEvent: ${error.message}`
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          data: resp
+        });
+      }
+    }
+  );
+};
+
+//TODO:
+// @desc edit poolevent by id
+// @route PUT /api/v1/poolevent/:id
+// @access Private
+exports.getSoonStartingEvents = (req, res) => {
+  global.conn.query(
+    `select * from poolevents p order by event_start;`,
     (error, resp) => {
       if (error) {
         res.status(400).json({

@@ -1,4 +1,3 @@
-const initConnection = require("../config/connectMysql").initConnection;
 const { checkChallengeComplete } = require("../service/gamification");
 
 // @desc get comment by id
@@ -6,13 +5,13 @@ const { checkChallengeComplete } = require("../service/gamification");
 // @access Public
 exports.getCommentsByPooleventId = (req, res) => {
   const { pooleventId } = req.params;
-  const conn = initConnection();
+  
   const sql = `SELECT c.text, c.id, c.created_at, 
-              c.user_id, u.first_name,u.last_name 
+              c.user_id,u.full_name, u.first_name,u.last_name 
               FROM comments c 
               JOIN users u ON c.user_id=u.id 
               WHERE c.poolevent_id='${pooleventId}';`;
-  conn.query(sql, (err, comment) => {
+ global.conn.query(sql, (err, comment) => {
     if (err) {
       res.status(400).json({
         success: false,
@@ -35,10 +34,8 @@ exports.postComment = (req, res) => {
   const { body } = req;
   const { id } = req.user;
   body.user_id = id;
-  console.log(body);
-  let conn = initConnection();
   const sql = `INSERT INTO comments SET ?`;
-  conn.query(sql, body, (error, comment) => {
+ global.conn.query(sql, body, (error, comment) => {
     if (error) {
       res.status(400).json({
         success: false,
@@ -66,8 +63,8 @@ exports.postComment = (req, res) => {
 // @access Private
 exports.deleteComment = (req, res) => {
   const { id } = req.user;
-  const conn = initConnection();
-  conn.query(`DELETE FROM WHERE comments.id='${id}';`, (error, resp) => {
+  
+ global.conn.query(`DELETE FROM WHERE comments.id='${id}';`, (error, resp) => {
     if (error) {
       res.status(400).json({
         success: false,
@@ -89,8 +86,8 @@ exports.putComment = (req, res) => {
   const { body } = req;
   const { id } = req.user;
   body.user_id = id;
-  const conn = initConnection();
-  conn.query(`UPDATE comments SET ? WHERE id =${id};`, body, (error, resp) => {
+  
+ global.conn.query(`UPDATE comments SET ? WHERE id =${id};`, body, (error, resp) => {
     if (error) {
       res.status(400).json({
         success: false,

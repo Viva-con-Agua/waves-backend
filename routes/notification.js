@@ -4,9 +4,9 @@ const { verify } = require("../middelware/tokenChecker");
 const {
   getNewNotificationsByUserId,
   getNotificationByUserId
-} = require("../controller/notification");
+} = require("../controller/notificationController");
 
-router.route("/:userId").get(verify, getNotificationByUserId);
+router.route("/user").get(verify, getNotificationByUserId);
 
 router.route("/user/:userId/new").get(verify, getNewNotificationsByUserId);
 

@@ -8,7 +8,7 @@ const {
     getApplicationsUser,
     postApplication,
     putApplication
-  } = require("../controller/application");
+  } = require("../controller/applicationController");
 
 
 router.route("/").post(verify, postApplication);
@@ -16,7 +16,7 @@ router.route("/").post(verify, postApplication);
 router
   .route("/:id")
   .get(getApplicationById)
-  .put(verify, putApplication)
+  .put(verify ,putApplication)
   .delete(verify, deleteApplication);
 
 router.route("/poolevent/:id").get(getApplicationsEvent);

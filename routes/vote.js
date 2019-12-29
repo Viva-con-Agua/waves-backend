@@ -3,7 +3,7 @@ const {
   deletevote,
   getvoteByCommentId,
   postvote
-} = require("../controller/vote");
+} = require("../controller/voteController");
 
 const { verify } = require("../middelware/tokenChecker");
 

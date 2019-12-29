@@ -1,4 +1,3 @@
-const { initConnection } = require("../config/connectMysql");
 
 exports.postAchievement = (req, res) => {
   const { badge, challenge } = req.body.achievement;
@@ -37,8 +36,8 @@ exports.postAchievement = (req, res) => {
 };
 
 const saveBadge = (badge, callback) => {
-  const conn = initConnection();
-  conn.query("INSERT INTO badges SET ?;", badge, (error, badge) => {
+  
+ global.conn.query("INSERT INTO badges SET ?;", badge, (error, badge) => {
     if (!error) {
       callback(null, badge);
     } else {
@@ -48,8 +47,8 @@ const saveBadge = (badge, callback) => {
 };
 
 const saveChallenge = (challenge, callback) => {
-  const conn = initConnection();
-  conn.query("INSERT INTO challenges SET ?;", challenge, (error, challenge) => {
+  
+ global.conn.query("INSERT INTO challenges SET ?;", challenge, (error, challenge) => {
     if (!error) {
       callback(null, challenge);
     } else {
@@ -60,19 +59,17 @@ const saveChallenge = (challenge, callback) => {
 
 const initChallengeProgressForAllUsers = (badgeId, type, callback) => {
   try {
-    const conn = initConnection();
-    conn.query(
+    
+   global.conn.query(
       "SELECT u.id AS user_id FROM users u ;",
       async (error, userIds) => {
-        console.log(userIds);
         if (error) {
           callback(error);
         }
         const challengeProgress = await userIds.map(({ user_id }) => {
           return [user_id, badgeId, type];
         });
-        console.log(challengeProgress);
-        conn.query(
+       global.conn.query(
           "INSERT INTO badge_progress (user_id, badge_id,type) VALUES ?",
           [challengeProgress],
           (error, resp) => {
@@ -96,5 +93,5 @@ const initChallengeProgressForAllUsers = (badgeId, type, callback) => {
 
 exports.getAverageBadgeComplete = (req,res)=>{
   const conn = initConnection()
-  conn.query('SELECT * badge_progress WHERE ')
+ global.conn.query('SELECT * badge_progress WHERE ')
 }

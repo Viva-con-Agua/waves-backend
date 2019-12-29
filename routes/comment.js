@@ -8,7 +8,7 @@ const {
     getCommentsByPooleventId,
     postComment,
     putComment
-  } = require("../controller/comment");
+  } = require("../controller/commentController");
 
 router.route("/").post(verify, postComment); //private
 

@@ -6,8 +6,8 @@ exports.authenticate = async (req, res) => {
   try {
     const { code, state } = req.query;
     const s = await fetchToken(code);
+    //fetchProfile
     const p = await fetchProfile(s.access_token);
-    console.log(p.profiles[0].supporter);
     getUserById(p.id, async (error, user) => {
       if (error) {
         res.status(400).json({
@@ -15,7 +15,7 @@ exports.authenticate = async (req, res) => {
           error: error
         });
       }
-      if (user.length <= 0) {
+      if (user.length == 0) {
         await saveUser(
           {
             id: p.id,
@@ -38,11 +38,21 @@ exports.authenticate = async (req, res) => {
               }
               res.cookie("role", p.roles[0].role);
               res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
+              res.cookie(
+                "first_name",
+                p.profiles[0].supporter.firstName.trim()
+              );
+              res.cookie("last_name", p.profiles[0].supporter.lastName.trim());
               res.cookie("access_token", s.access_token).redirect(state);
             });
           }
         );
       } else {
+        res.cookie(
+          "first_name",
+          p.profiles[0].supporter.firstName.trim()
+        );
+        res.cookie("last_name", p.profiles[0].supporter.lastName.trim());
         res.cookie("role", p.roles[0].role);
         res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
         res.cookie("access_token", s.access_token).redirect(state);
