@@ -23,5 +23,4 @@ router.route("/poolevent/:id").get(getApplicationsEvent);
 
 router.route("/user/:id").get(verify, getApplicationsUser);
 
-
 module.exports = router;

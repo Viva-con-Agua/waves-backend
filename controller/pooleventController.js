@@ -21,7 +21,7 @@ exports.getPoolEvents = (req, res, next) => {
   }
 
   if (region) {
-    filter += `AND l.city="${region}"`;
+    filter += `AND l.locality="${region}"`;
   }
 
   const sql = `SELECT 
@@ -29,12 +29,13 @@ exports.getPoolEvents = (req, res, next) => {
   p.name,
   p.supporter_lim, 
   p.event_start,
+  p.event_end,
   p.type, 
   p.application_end, 
-  l.street_name, 
+  l.route, 
   l.street_number,
-  l.city,
-  l.post_code 
+  l.locality,
+  l.postal_code 
   FROM poolevents p 
   JOIN locations l ON l.poolevent_id=p.id 
   WHERE p.state="RELEASED" ${filter} LIMIT ${limit};`;
@@ -58,7 +59,7 @@ exports.getPoolEvents = (req, res, next) => {
 // @access Public
 exports.getPoolEventById = (req, res) => {
   const { id } = req.params;
-  const sql = `SELECT * FROM poolevents AS p  
+  const sql = `SELECT *,p.type FROM poolevents AS p  
               JOIN locations l ON p.id=l.poolevent_id 
               JOIN descriptions d ON d.poolevent_id=p.id 
               WHERE p.id=${id};`;
@@ -71,15 +72,16 @@ exports.getPoolEventById = (req, res) => {
     } else {
       if (poolevent.length > 0) {
         const {
-          id,
-          street_name,
+          poolevent_id,
+          route,
           street_number,
           country,
-          city,
-          post_code,
+          type,
+          locality,
+          postal_code,
           desc,
-          long,
-          lat,
+          longitude,
+          latitude,
           name,
           event_start,
           event_end,
@@ -95,8 +97,9 @@ exports.getPoolEventById = (req, res) => {
         res.status(200).json({
           success: true,
           data: {
-            id,
+            poolevent_id,
             name,
+            type,
             event_start,
             event_end,
             application_start,
@@ -105,14 +108,14 @@ exports.getPoolEventById = (req, res) => {
             supporter_lim,
             state,
             location: {
-              street_name,
+              route,
               street_number,
               country,
-              city,
-              post_code,
+              locality,
+              postal_code,
               desc,
-              long,
-              lat
+              longitude,
+              latitude
             },
             description: {
               text,
@@ -133,16 +136,17 @@ exports.getPoolEventById = (req, res) => {
 //TODO: desc
 exports.postPoolEvent = (req, res) => {
   const errors = validationResult(req);
-
+  console.log(errors);
   if (!errors.isEmpty()) {
     return res.status(422).json({
       success: false,
       errors: errors.array()
     });
   }
-  const { poolevent, location, description } = req.body;
-  poolevent.user_id = req.user.id;
-  savePoolevent(poolevent, (error, pooleventResp) => {
+
+  const { front, location, description } = req.body;
+  front.user_id = req.user.id;
+  savePoolevent(front, (error, pooleventResp) => {
     if (error) {
       res.status(400).json({
         message: error
@@ -252,7 +256,9 @@ exports.getPoolEventByUserId = (req, res) => {
   const { id } = req.user;
 
   global.conn.query(
-    `SELECT * FROM poolevents WHERE user_id='${id}';`,
+    `SELECT * FROM poolevents p 
+    join locations l on l.poolevent_id=p.id 
+    WHERE user_id='${id}';`,
     (error, resp) => {
       if (error) {
         res.status(400).json({

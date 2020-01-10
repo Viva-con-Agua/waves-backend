@@ -1,6 +1,10 @@
 const Axios = require("axios");
 const { saveUser, getUserById } = require("../service/users");
-const { initNewUsersAchievements } = require("../service/gamification");
+const {
+  initNewUsersAchievements,
+  checkProfileComplete,
+  checkProfileVerified
+} = require("../service/gamification");
 
 exports.authenticate = async (req, res) => {
   try {
@@ -48,10 +52,10 @@ exports.authenticate = async (req, res) => {
           }
         );
       } else {
-        res.cookie(
-          "first_name",
-          p.profiles[0].supporter.firstName.trim()
-        );
+        checkProfileComplete(p.id);
+        checkProfileVerified(p.id);
+        res.cookie("user_id", p.id);
+        res.cookie("first_name", p.profiles[0].supporter.firstName.trim());
         res.cookie("last_name", p.profiles[0].supporter.lastName.trim());
         res.cookie("role", p.roles[0].role);
         res.cookie("full_name", p.profiles[0].supporter.fullName.trim());

@@ -36,25 +36,24 @@ exports.getApplicationsEvent = (req, res) => {
 // @access Private
 exports.getApplicationsUser = (req, res) => {
   const { id } = req.user;
-  global.conn.query(
-    `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id,a.id FROM applications a 
-    JOIN poolevents p 
-    on a.poolevent_id=p.id 
-    WHERE a.user_id='${id}';`,
-    (error, applications) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: error.message
-        });
-      }
+  const query = `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id,a.id 
+  FROM applications a 
+  JOIN poolevents p 
+  on a.poolevent_id=p.id 
+  WHERE a.user_id="${id}";`;
 
-      res.status(200).json({
-        success: true,
-        data: applications
+  global.conn.query(query, (error, applications) => {
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
       });
     }
-  );
+    res.status(200).json({
+      success: true,
+      data: applications
+    });
+  });
 };
 
 // @desc get application by id
@@ -137,10 +136,9 @@ exports.deleteApplication = (req, res) => {
 // @access Private
 exports.putApplication = (req, res) => {
   const { body } = req;
-  const { id } = req.user;
-
+  const { id } = req.params;
   global.conn.query(
-    `UPDATE applications SET ? WHERE id=${id};`,
+    `UPDATE applications SET ? WHERE id="${id}";`,
     body,
     (error, resp) => {
       if (error) {

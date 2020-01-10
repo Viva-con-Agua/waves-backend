@@ -17,18 +17,15 @@ router
   .post(
     verify,
     [
-      check("poolevent.name")
+      check("front.name")
         .not()
         .isEmpty(),
-      check("poolevent.state").isString(),
-      check("location.street_name").isString(),
+      check("location.route").isString(),
       check("location.street_number").isString(),
-      check("location.long").isString(),
-      check("location.lat").isString(),
-      check("location.city").isString(),
-      check("location.country").isString(),
-      check("description.text").isString(),
-      check("description.html").isString()
+      check("location.longitude").isString(),
+      check("location.latitude").isString(),
+      check("location.locality").isString(),
+      check("location.country").isString()
     ],
     postPoolEvent
   );

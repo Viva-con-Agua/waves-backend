@@ -5,7 +5,7 @@ exports.getNotificationByUserId = async (req, res) => {
     const { id } = req.user;
     let { limit } = req.query;
     if (!limit) {
-      limit = 10;
+      limit = 6;
     }
     const sql = `SELECT * FROM notifications n 
     join notification_poolevents np 
@@ -61,7 +61,6 @@ exports.getNotificationByUserId = async (req, res) => {
 
 const resolveIds = (notifications, callback) => {
   let res = [];
-  const conn = initConnection();
   notifications.map((notification, i) => {
     let sql = `select r.name, r.type from ${notification.type} r WHERE id=${notification.source_id}`;
     global.conn.query(sql, (error, resource) => {
@@ -80,7 +79,6 @@ const resolveIds = (notifications, callback) => {
 exports.getNewNotificationsByUserId = (req, res) => {
   try {
     const { id } = req.user;
-    const conn = initConnection();
     const sql = `SELECT * FROM notifications WHERE user_id='${id}' AND dirty=0;`;
     global.conn.query(sql, (error, newNotifications) => {
       if (!error) {
