@@ -1,4 +1,3 @@
-const { initConnection } = require("../config/connectMysql");
 
 exports.getNotificationByUserId = async (req, res) => {
   try {

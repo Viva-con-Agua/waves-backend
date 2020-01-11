@@ -78,7 +78,9 @@ exports.deleteFavorite = (req, res) => {
 // @route DELETE /api/v1/favorite/:id
 // @access Private
 exports.getMostFavedPoolevents = (req, res) => {
-  const sql = `select * from poolevents p where state="released"
+  const sql = `select *, pt.name as type_name ,p.name as pe_name from poolevents p 
+  join poolevent_types pt on pt.idevent_type = p.idevent_type
+  where p.state="released"
   order by 
   p.fave_count desc LIMIT 10;`;
   global.conn.query(sql, (error, resp) => {

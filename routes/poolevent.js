@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { check } = require("express-validator");
 const { verify } = require("../middelware/tokenChecker");
+const { checkAccessControl } = require("../middelware/accessControlChecker");
 
 const {
   getPoolEventByUserId,
@@ -34,8 +35,10 @@ router
   .route("/:id")
   .get(getPoolEventById)
   .put(verify, putPoolEvent)
-  .delete(verify, deletePoolEvent); //private
+  .delete(deletePoolEvent); //private
 
-router.route("/user/me").get(verify, getPoolEventByUserId); //private
+router
+  .route("/user/me")
+  .get(verify, checkAccessControl("readAny", "poolevent"), getPoolEventByUserId); //private
 
 module.exports = router;

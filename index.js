@@ -9,8 +9,10 @@ const application = require("./routes/application");
 const comment = require("./routes/comment");
 const vote = require("./routes/vote");
 const notification = require("./routes/notification");
+const eventtype = require("./routes/pooleventType");
 const favorite = require("./routes/favorite");
 const routes = require("./routes/index");
+const {initAccessControl} = require("./middelware/accessControlChecker");
 const user = require("./routes/user");
 const socket = require("./socket");
 const dotenv = require("dotenv");
@@ -29,6 +31,7 @@ var io = require("socket.io")(server);
 socket(io);
 calculatePooleventOfTheDay();
 eventEmitter();
+initAccessControl();
 
 if (process.env.NODE_ENV == "dev") {
   app.use(morgan);
@@ -48,6 +51,8 @@ app.use("/waves/api/v1/comment", comment);
 app.use("/waves/api/v1/notification", notification);
 app.use("/waves/api/v1/favorite", favorite);
 app.use("/waves/api/v1/user", user);
+app.use("/waves/api/v1/eventtype", eventtype);
+
 
 const port = process.env.PORT || 5000;
 
