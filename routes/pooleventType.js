@@ -1,10 +1,10 @@
 const router = require("express").Router();
-const { check } = require("express-validator");
 const { verify } = require("../middelware/tokenChecker");
+const { checkAccessControl } = require("../middelware/accessControlChecker");
+const { check } = require("express-validator");
 
 const {
   getAllPeType,
-  deletePeType,
   postPeType,
   putPeType
 } = require("../controller/pooleventTypeController");
@@ -12,11 +12,18 @@ const {
 router
   .route("/")
   .get(getAllPeType)
-  .post( postPeType);
+  .post(
+    verify,
+    checkAccessControl("createAny", "event_type"),
+    check("name")
+      .not()
+      .isEmpty()
+      .isString(),
+    postPeType
+  );
 
 router
   .route("/:id")
-  .put(verify, putPeType)
-  .delete(verify, deletePeType); //private
+  .put(verify, checkAccessControl("updateAny", "event_type"), putPeType);
 
 module.exports = router;

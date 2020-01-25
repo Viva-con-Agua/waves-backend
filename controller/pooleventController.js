@@ -11,7 +11,7 @@ const { saveDescription } = require("../service/description");
 //TODO: pagination + sorting
 exports.getPoolEvents = (req, res, next) => {
   let filter = "";
-  let { limit, type, region, state } = req.query;
+  let { limit, type, region, state, start } = req.query;
   if (!limit) {
     limit = 10;
   }
@@ -30,6 +30,10 @@ exports.getPoolEvents = (req, res, next) => {
     filter += ` AND l.locality="${region}"`;
   }
 
+  if (start) {
+    filter += ` AND monthname(p.event_start)="${start}"`;
+  }
+
   const sql = `SELECT 
   p.id, 
   p.name,
@@ -37,6 +41,7 @@ exports.getPoolEvents = (req, res, next) => {
   p.event_start,
   p.event_end,
   p.application_end, 
+  p.state, 
   l.route, 
   l.street_number,
   l.locality,
@@ -208,9 +213,19 @@ exports.deletePoolEvent = (req, res) => {
   global.conn.query(
     `DELETE FROM locations l WHERE l.poolevent_id=${id}`,
     (error, l) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: `Error in deletePoolevent ${error.message}`
+        });}
       global.conn.query(
         `DELETE FROM descriptions d WHERE d.poolevent_id=${id}`,
         (error, d) => {
+          if (error) {
+            res.status(400).json({
+              success: false,
+              message: `Error in deletePoolevent ${error.message}`
+            });}
           global.conn.query(
             `DELETE FROM poolevents WHERE poolevents.id='${id} ';`,
             (error, resp) => {
@@ -239,7 +254,7 @@ exports.deletePoolEvent = (req, res) => {
 exports.putPoolEvent = (req, res) => {
   const { body } = req;
   const { id } = req.params;
-  console.log("-->",body);
+  console.log("-->", body);
   global.conn.query(
     `UPDATE poolevents SET ? WHERE id =${id};`,
     body.front,
@@ -322,8 +337,20 @@ exports.getPoolEventByUserId = (req, res) => {
   const { id } = req.user;
 
   global.conn.query(
-    `SELECT * FROM poolevents p 
+    `SELECT 
+    p.id, 
+    p.name,
+    p.event_start,
+    p.event_end,
+    p.application_end, 
+    l.route, 
+    l.street_number,
+    l.locality,
+    l.postal_code,
+    pt.name as type_name 
+    FROM poolevents p 
     join locations l on l.poolevent_id=p.id 
+    join poolevent_types pt on pt.idevent_type=p.idevent_type
     WHERE user_id='${id}';`,
     (error, resp) => {
       if (error) {

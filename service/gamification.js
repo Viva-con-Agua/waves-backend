@@ -108,17 +108,21 @@ exports.initNewUsersAchievements = (userId, callback) => {
       return [userId, badge_id, type];
     });
 
-    global.conn.query(
-      "INSERT INTO badge_progress (user_id, badge_id,type) VALUES ?",
-      [challengeProgress],
-      (error, resp) => {
-        if (error) {
-          callback(error);
-        } else {
-          callback(null, resp);
+    if (challengeProgress.length > 0) {
+      global.conn.query(
+        "INSERT INTO badge_progress (user_id, badge_id,type) VALUES ?",
+        [challengeProgress],
+        (error, resp) => {
+          if (error) {
+            callback(error);
+          } else {
+            callback(null, resp);
+          }
         }
-      }
-    );
+      );
+    } else {
+      callback(null, {});
+    }
   });
 };
 

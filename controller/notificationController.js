@@ -1,5 +1,5 @@
-
 exports.getNotificationByUserId = async (req, res) => {
+  console.log("scoop")
   try {
     const { id } = req.user;
     let { limit } = req.query;
@@ -14,28 +14,19 @@ exports.getNotificationByUserId = async (req, res) => {
     SELECT * FROM notifications n 
     join notification_badges nb 
     on nb.id=n.id 
-    WHERE n.user_id=? order by created_at desc LIMIT ${limit}`;
+    WHERE n.user_id='${id}' order by created_at desc LIMIT ${limit}`;
     global.conn.query(sql, id, (error, notifications) => {
+      console.log(error, notifications);
       if (!error) {
         global.conn.query(
           `UPDATE notifications SET ? 
           WHERE user_id='${id}' AND dirty=0;`,
           { dirty: 1 },
           (error, resp) => {
-            if (error) {
-              res.status(400).json({
-                success: false,
-                message: error
-              });
-            }
-            resolveIds(notifications, (error, resolvedNotification) => {
-              if (error) {
-                res.status(400).json({
-                  success: false,
-                  message: error
-                });
-              }
+            console.log("-->", error, resp);
 
+            resolveIds(notifications, (error, resolvedNotification) => {
+              console.log(error);
               res.status(200).json({
                 success: true,
                 data: resolvedNotification
@@ -44,6 +35,7 @@ exports.getNotificationByUserId = async (req, res) => {
           }
         );
       } else {
+        console.log(error);
         res.status(400).json({
           success: false,
           message: error
@@ -51,6 +43,7 @@ exports.getNotificationByUserId = async (req, res) => {
       }
     });
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
       message: error
@@ -61,9 +54,12 @@ exports.getNotificationByUserId = async (req, res) => {
 const resolveIds = (notifications, callback) => {
   let res = [];
   notifications.map((notification, i) => {
-    let sql = `select r.name, r.type from ${notification.type} r WHERE id=${notification.source_id}`;
+    let sql = `select r.name, ${
+      notification.type == "poolevents" ? "r.idevent_type" : "r.type"
+    } from ${notification.type} r WHERE r.id=${notification.source_id}`;
     global.conn.query(sql, (error, resource) => {
       if (error) {
+        console.log(error);
         callback(error);
       } else {
         res.push({ notification, source: resource[0] });
