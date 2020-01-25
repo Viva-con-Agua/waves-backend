@@ -11,17 +11,27 @@ const { saveDescription } = require("../service/description");
 //TODO: pagination + sorting
 exports.getPoolEvents = (req, res, next) => {
   let filter = "";
-  let { limit, type, region } = req.query;
+  let { limit, type, region, state, start } = req.query;
   if (!limit) {
     limit = 10;
   }
 
+  if (state) {
+    filter += `p.state="${state}"`;
+  } else {
+    filter += `p.state="RELEASED"`;
+  }
+
   if (type) {
-    filter += `AND p.type="${type.toUpperCase()}"`;
+    filter += `AND p.idevent_type=${type}`;
   }
 
   if (region) {
-    filter += `AND l.locality="${region}"`;
+    filter += ` AND l.locality="${region}"`;
+  }
+
+  if (start) {
+    filter += ` AND monthname(p.event_start)="${start}"`;
   }
 
   const sql = `SELECT 
@@ -30,17 +40,19 @@ exports.getPoolEvents = (req, res, next) => {
   p.supporter_lim, 
   p.event_start,
   p.event_end,
-  p.type, 
   p.application_end, 
+  p.state, 
   l.route, 
   l.street_number,
   l.locality,
-  l.postal_code 
+  l.postal_code,
+  pt.name as type_name
   FROM poolevents p 
-  JOIN locations l ON l.poolevent_id=p.id 
-  WHERE p.state="RELEASED" ${filter} LIMIT ${limit};`;
+  JOIN locations l ON l.poolevent_id=p.id JOIN poolevent_types pt ON p.idevent_type=pt.idevent_type
+  WHERE ${filter} LIMIT ${limit};`;
   global.conn.query(sql, (error, poolevents) => {
     if (error) {
+      console.log(error);
       res.status(400).json({
         success: false,
         message: error.message
@@ -59,9 +71,10 @@ exports.getPoolEvents = (req, res, next) => {
 // @access Public
 exports.getPoolEventById = (req, res) => {
   const { id } = req.params;
-  const sql = `SELECT *,p.type FROM poolevents AS p  
+  const sql = `SELECT *,pt.name as type_name, p.name as event_name FROM poolevents AS p  
               JOIN locations l ON p.id=l.poolevent_id 
-              JOIN descriptions d ON d.poolevent_id=p.id 
+              JOIN descriptions d ON d.poolevent_id=p.id
+              JOIN poolevent_types pt ON pt.idevent_type=p.idevent_type
               WHERE p.id=${id};`;
   global.conn.query(sql, (err, poolevent) => {
     if (err) {
@@ -72,17 +85,18 @@ exports.getPoolEventById = (req, res) => {
     } else {
       if (poolevent.length > 0) {
         const {
+          asp_event_id,
+          event_name,
           poolevent_id,
           route,
           street_number,
           country,
-          type,
+          type_name,
           locality,
           postal_code,
           desc,
           longitude,
           latitude,
-          name,
           event_start,
           event_end,
           application_start,
@@ -98,8 +112,8 @@ exports.getPoolEventById = (req, res) => {
           success: true,
           data: {
             poolevent_id,
-            name,
-            type,
+            event_name,
+            type_name,
             event_start,
             event_end,
             application_start,
@@ -107,6 +121,7 @@ exports.getPoolEventById = (req, res) => {
             website,
             supporter_lim,
             state,
+            asp_event_id,
             location: {
               route,
               street_number,
@@ -198,9 +213,19 @@ exports.deletePoolEvent = (req, res) => {
   global.conn.query(
     `DELETE FROM locations l WHERE l.poolevent_id=${id}`,
     (error, l) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: `Error in deletePoolevent ${error.message}`
+        });}
       global.conn.query(
         `DELETE FROM descriptions d WHERE d.poolevent_id=${id}`,
         (error, d) => {
+          if (error) {
+            res.status(400).json({
+              success: false,
+              message: `Error in deletePoolevent ${error.message}`
+            });}
           global.conn.query(
             `DELETE FROM poolevents WHERE poolevents.id='${id} ';`,
             (error, resp) => {
@@ -229,20 +254,76 @@ exports.deletePoolEvent = (req, res) => {
 exports.putPoolEvent = (req, res) => {
   const { body } = req;
   const { id } = req.params;
+  console.log("-->", body);
   global.conn.query(
     `UPDATE poolevents SET ? WHERE id =${id};`,
-    body,
+    body.front,
     (error, resp) => {
       if (error) {
+        console.log(error);
         res.status(400).json({
           success: false,
           message: `Error in putPoolEvent: ${error.message}`
         });
       } else {
-        res.status(200).json({
-          success: true,
-          data: resp
-        });
+        if (body.location) {
+          global.conn.query(
+            `UPDATE locations set ? where poolevent_id=${id}`,
+            body.location,
+            (error, response) => {
+              if (error) {
+                console.log(error);
+                res.status(400).json({
+                  success: false,
+                  message: `Error in putPoolEvent: ${error.message}`
+                });
+              }
+            }
+          );
+          if (body.description) {
+            global.conn.query(
+              `UPDATE descriptions set ? where poolevent_id=${id}`,
+              body.description,
+              (error, response) => {
+                if (error) {
+                  console.log(error);
+                  res.status(400).json({
+                    success: false,
+                    message: `Error in putPoolEvent: ${error.message}`
+                  });
+                }
+                res.status(200).json({
+                  success: true,
+                  data: response
+                });
+              }
+            );
+          } else {
+            res.status(200).json({
+              success: true,
+              data: response
+            });
+          }
+        } else if (body.description) {
+          global.conn.query(
+            `UPDATE descriptions set ? where poolevent_id=${id}`,
+            body.description,
+            (error, response) => {
+              if (error) {
+                console.log(error);
+                res.status(400).json({
+                  success: false,
+                  message: `Error in putPoolEvent: ${error.message}`
+                });
+              }
+            }
+          );
+        } else {
+          res.status(200).json({
+            success: true,
+            data: resp
+          });
+        }
       }
     }
   );
@@ -256,8 +337,20 @@ exports.getPoolEventByUserId = (req, res) => {
   const { id } = req.user;
 
   global.conn.query(
-    `SELECT * FROM poolevents p 
+    `SELECT 
+    p.id, 
+    p.name,
+    p.event_start,
+    p.event_end,
+    p.application_end, 
+    l.route, 
+    l.street_number,
+    l.locality,
+    l.postal_code,
+    pt.name as type_name 
+    FROM poolevents p 
     join locations l on l.poolevent_id=p.id 
+    join poolevent_types pt on pt.idevent_type=p.idevent_type
     WHERE user_id='${id}';`,
     (error, resp) => {
       if (error) {

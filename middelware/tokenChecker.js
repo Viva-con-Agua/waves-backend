@@ -1,3 +1,4 @@
+const { getRolesByUserId } = require("../service/users");
 exports.verify = async (req, res, next) => {
   try {
     const { authorization } = req.headers;
@@ -15,8 +16,16 @@ exports.verify = async (req, res, next) => {
           res.status(400).json({ success: false, error: error });
         }
         if (user.length > 0) {
-          req.user = user[0];
-          next(null, user);
+          getRolesByUserId(user[0].id, (error, roles) => {
+            if (error) {
+              res.status(400).json({
+                success: false,
+                error: `error in verify token: ${error.message}`
+              });
+            }
+            req.user = { roles, ...user[0] };
+            next(null, user);
+          });
         } else {
           res.status(400).json({ success: false, error: `unauthorized` });
         }
@@ -24,7 +33,10 @@ exports.verify = async (req, res, next) => {
     );
   } catch (error) {
     if (error) {
-      res.status(400).json({ success: false, error: error });
+      res.status(400).json({
+        success: false,
+        error: `error in verify token: ${error.message}`
+      });
     }
   }
 };
