@@ -32,7 +32,7 @@ exports.postvote = (req, res) => {
   const { body } = req;
   const { id } = req.user;
   body.user_id = id;
-  
+
   global.conn.query(`INSERT INTO votes SET ?`, body, (error, vote) => {
     if (error) {
       res.status(400).json({ success: false, messaage: error.message });

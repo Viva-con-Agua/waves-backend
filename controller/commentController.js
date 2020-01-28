@@ -9,8 +9,8 @@ exports.getCommentsByPooleventId = (req, res) => {
   const sql = `SELECT c.text, c.id, c.created_at, 
               c.user_id,u.full_name, u.first_name,u.last_name 
               FROM comments c 
-              JOIN users u ON c.user_id=u.id 
-              WHERE c.poolevent_id='${pooleventId}';`;
+              JOIN users u ON c.user_id=u.id  
+              WHERE c.poolevent_id='${pooleventId}' order by c.created_at desc;`;
  global.conn.query(sql, (err, comment) => {
     if (err) {
       res.status(400).json({
@@ -29,12 +29,11 @@ exports.getCommentsByPooleventId = (req, res) => {
 // @desc  create comment
 // @route POST /api/v1/comment
 // @access Private
-//TODO: desc
 exports.postComment = (req, res) => {
   const { body } = req;
   const { id } = req.user;
   body.user_id = id;
-  const sql = `INSERT INTO comments SET ?`;
+  const sql = `INSERT INTO comments SET ?`; 
  global.conn.query(sql, body, (error, comment) => {
     if (error) {
       res.status(400).json({

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { verify } = require("../middelware/tokenChecker");
 
+
 const {
   getNewNotificationsByUserId,
   getNotificationByUserId

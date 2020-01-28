@@ -1,32 +1,95 @@
 {
   "badges": [
     {
-      "img": "//b.thumbs.redditmedia.com/loJzR3eUrPNvKw6g9RktAletCoQjMityx8emC5w83sw.png",
-      "name": "Best Comment",
-      "challenge": "Write a great comment",
-      "type":"poolevents",
-      "point":1
-    },
-    {
-      "img": "//b.thumbs.redditmedia.com/TnRIsjez67SOHX-F7iW56rSNpbORu-0V6zsR92TV6Qc.png",
-      "name": "Badge Designer",
-      "challenge": "design a badge for vca",
-      "type":"comments",
-      "point":1
-    },
-    {
-      "img": "//a.thumbs.redditmedia.com/uag6mXIzTCfMDaLAGr8IQ6PdPnVerANcJDIgPZDeDx0.png",
-      "name": "New User",
-      "challenge": "Join Pool",
-      "type":"votes",
-      "point":1
+      "img": "//b.thumbs.redditmedia.com/xdKEqKiFPEtQPTvc0Qh_MoR-8y4IYkHnMajh27qhGjE.png",
+      "name": "informed",
+      "challenge": "read the information site",
+      "type": "info",
+      "point": 1
     },
     {
       "img": "//b.thumbs.redditmedia.com/xdKEqKiFPEtQPTvc0Qh_MoR-8y4IYkHnMajh27qhGjE.png",
-      "name": "Verified Email Address",
-      "challenge": "Verify your email address",
-      "type":"applications",
-      "point":1
+      "name": "profile completed",
+      "challenge": "complete your profile",
+      "type": "profiles",
+      "point": 9
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/loJzR3eUrPNvKw6g9RktAletCoQjMityx8emC5w83sw.png",
+      "name": "First Event",
+      "challenge": "Create your first Event",
+      "type": "poolevents",
+      "point": 1
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/loJzR3eUrPNvKw6g9RktAletCoQjMityx8emC5w83sw.png",
+      "name": "Five Events",
+      "challenge": "Create 5 Event",
+      "type": "poolevents",
+      "point": 5
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/loJzR3eUrPNvKw6g9RktAletCoQjMityx8emC5w83sw.png",
+      "name": "Ten Events",
+      "challenge": "Create 10 Event",
+      "type": "poolevents",
+      "point": 10
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/TnRIsjez67SOHX-F7iW56rSNpbORu-0V6zsR92TV6Qc.png",
+      "name": "first comment",
+      "challenge": "write your first comment",
+      "type": "comments",
+      "point": 1
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/TnRIsjez67SOHX-F7iW56rSNpbORu-0V6zsR92TV6Qc.png",
+      "name": "Five comments",
+      "challenge": "write 5 comments",
+      "type": "comments",
+      "point": 5
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/TnRIsjez67SOHX-F7iW56rSNpbORu-0V6zsR92TV6Qc.png",
+      "name": "Ten comments",
+      "challenge": "write ten comments",
+      "type": "comments",
+      "point": 10
+    },
+    {
+      "img": "//a.thumbs.redditmedia.com/uag6mXIzTCfMDaLAGr8IQ6PdPnVerANcJDIgPZDeDx0.png",
+      "name": "First Votes",
+      "challenge": "Vote for the first time",
+      "type": "votes",
+      "point": 1
+    },
+    {
+      "img": "//a.thumbs.redditmedia.com/uag6mXIzTCfMDaLAGr8IQ6PdPnVerANcJDIgPZDeDx0.png",
+      "name": "Five Votes",
+      "challenge": "Vote five times",
+      "type": "votes",
+      "point": 5
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/xdKEqKiFPEtQPTvc0Qh_MoR-8y4IYkHnMajh27qhGjE.png",
+      "name": "First application",
+      "challenge": "Apply for the first time",
+      "type": "applications",
+      "point": 1
+    },
+    {
+      "name": "5 applications",
+      "img": "//b.thumbs.redditmedia.com/xdKEqKiFPEtQPTvc0Qh_MoR-8y4IYkHnMajh27qhGjE.png",
+      "challenge": "apply for the fifth time",
+      "type": "applications",
+      "point": 5
+    },
+    {
+      "img": "//b.thumbs.redditmedia.com/xdKEqKiFPEtQPTvc0Qh_MoR-8y4IYkHnMajh27qhGjE.png",
+      "name": "10 applications",
+      "challenge": "apply for the tenth time",
+      "type": "applications",
+      "point": 10
     }
   ]
 }

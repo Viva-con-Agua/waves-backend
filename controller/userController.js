@@ -1,8 +1,9 @@
 const { initConnection } = require("../config/connectMysql");
+const axios = require("axios");
 
 exports.getAllUsers = (req, res) => {
   const conn = initConnection();
- global.conn.query(`SELECT u.id, u.last_name FROM users u;`, (err, users) => {
+  global.conn.query(`SELECT u.id, u.last_name FROM users u;`, (err, users) => {
     if (err) {
       res.status(400).json({
         success: false,
@@ -15,4 +16,12 @@ exports.getAllUsers = (req, res) => {
       });
     }
   });
+};
+
+exports.fetchUserById = (req, res) => {
+  try {
+    console.log("scoop");
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 };

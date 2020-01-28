@@ -1,7 +1,4 @@
-const { initConnection } = require("../config/connectMysql");
-
 exports.countEntriesByTableName = (tableName, userId, callback) => {
-  const conn = initConnection();
   let sql = `SELECT COUNT(*) AS count FROM ${tableName}
   WHERE user_id=?`;
   global.conn.query(sql, userId, (error, count) => {
@@ -13,7 +10,6 @@ exports.countEntriesByTableName = (tableName, userId, callback) => {
 };
 
 exports.joinNotificationOnTablename = (tableName, userId, callback) => {
-  const conn = initConnection();
   let sql = `SELECT COUNT(*) AS count FROM ${tableName}
   WHERE user_id=?`;
   global.conn.query(sql, userId, (error, count) => {

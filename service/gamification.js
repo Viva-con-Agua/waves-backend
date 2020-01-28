@@ -43,7 +43,7 @@ exports.checkChallengeComplete = (type, userId, callback) => {
 const joinChallengeOnProgress = (userId, type, callback) => {
   try {
     const sql = `SELECT * FROM badge_progress bp 
-    JOIN wavesdb.challenges c 
+    JOIN challenges c 
     ON c.badge_id=bp.badge_id AND c.points=bp.progress 
     WHERE bp.user_id="${userId}" 
     AND c.type="${type}" 
@@ -108,23 +108,26 @@ exports.initNewUsersAchievements = (userId, callback) => {
       return [userId, badge_id, type];
     });
 
-    global.conn.query(
-      "INSERT INTO badge_progress (user_id, badge_id,type) VALUES ?",
-      [challengeProgress],
-      (error, resp) => {
-        if (error) {
-          callback(error);
-        } else {
-          callback(null, resp);
+    if (challengeProgress.length > 0) {
+      global.conn.query(
+        "INSERT INTO badge_progress (user_id, badge_id,type) VALUES ?",
+        [challengeProgress],
+        (error, resp) => {
+          if (error) {
+            callback(error);
+          } else {
+            callback(null, resp);
+          }
         }
-      }
-    );
+      );
+    } else {
+      callback(null, {});
+    }
   });
 };
 
 const getAllChallenges = callback => {
   const selectAllChallenges = "SELECT * FROM challenges;";
-
   global.conn.query(selectAllChallenges, (error, challenges) => {
     if (error) {
       callback(error);
@@ -136,19 +139,49 @@ const getAllChallenges = callback => {
 
 exports.checkProfileComplete = userId => {
   global.conn.query(
-    `select * from users where id="${userId}"`,
+    `SELECT * FROM users WHERE id="${userId}"`,
     (error, user) => {
-      if (!error) {
+      if (error) {
         console.log(error);
       }
-      console.log(Object.values(user[0]));
-      const filtered = Object.values(user[0]).filter(value => {
-        return value == null || value == "";
-      });
-      console.log(
-        (Object.values(user[0]).length - filtered.length) /
-          Object.values(user[0]).length
+      let values = Object.values(user[0]);
+      const filtered = values.filter(
+        value =>
+          value == null || value == undefined || value == "" || value == ""
       );
+      global.conn.query(
+        `UPDATE badge_progress SET ? 
+        WHERE user_id="${userId}" 
+        and type="profiles"`,
+        { progress: values.length - filtered.length },
+        (error, progress) => {
+          console.log(error, progress);
+          joinChallengeOnProgress(userId, "profiles", (error, joined) => {
+            console.log(error, joined);
+            if (joined > 0) {
+              setChallengeToCompleted(joined, (error, complete) => {
+                console.log(error, complete);
+              });
+            }
+          });
+        }
+      );
+    }
+  );
+};
+
+exports.checkProfileVerified = userId => {
+  global.conn.query(
+    `SELECT * FROM users WHERE id="${userId}"`,
+    (error, user) => {
+      if (error) {
+        console.log(error);
+      }
+      if (user.length > 0) {
+        if (user[0].verified) {
+          console.log("verified");
+        }
+      }
     }
   );
 };

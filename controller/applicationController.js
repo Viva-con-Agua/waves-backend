@@ -3,32 +3,69 @@ const { checkChallengeComplete } = require("../service/gamification");
 // @route GET /api/v1/application/event/:id
 // @access Private
 exports.getApplicationsEvent = (req, res) => {
-  const { id } = req.params;
-  global.conn.query(
-    `SELECT a.created_at,
-    a.id as application_id,
-    u.id as user_id,
-    u.first_name,
-    u.last_name,
-    a.text,
-    a.state 
-    FROM applications a 
-    JOIN users u ON u.id=a.user_id 
-    WHERE a.poolevent_id='${id}';`,
-    (error, applications) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: error.message
+  if (req.params) {
+    const { id } = req.params;
+    global.conn.query(
+      `SELECT a.created_at,
+      a.id as application_id,
+      u.id as user_id,
+      u.first_name,
+      u.last_name,
+      a.text,
+      a.state
+      FROM applications a
+      JOIN users u ON u.id=a.user_id 
+      WHERE a.poolevent_id=${id};`,
+      (error, applications) => {
+        if (error) {
+          res.status(400).json({
+            success: false,
+            message: error.message
+          });
+        }
+        getStatistic(applications, (error, result) => {
+          applications.statistic = result;
+          if (error) {
+            res.status(400).json({
+              success: false,
+              error: error.message
+            });
+          }
+          res.status(200).json({
+            success: true,
+            data: applications
+          });
         });
       }
+    );
+  } else {
+    res.status(400).json({
+      success: false,
+      message: "event id missing"
+    });
+  }
+};
 
-      res.status(200).json({
-        success: true,
-        data: applications
-      });
-    }
-  );
+const getStatistic = (applications, callback) => {
+  let result = [];
+  applications.map((application, i) => {
+    global.conn.query(
+      `select * from  
+      (select count(*) as rejected_count from applications where state="rejected" and user_id="${application.user_id}")as rejected, 
+      (select count(*)as accepted_count from applications where state="accepted" and user_id="${application.user_id}") as accepted;`,
+      (error, resp) => {
+        if (error) {
+          callback(error);
+        } else {
+          application.statistic = resp[0];
+          result.push(application);
+          if (applications.length - 1 == i) {
+            callback(null, result);
+          }
+        }
+      }
+    );
+  });
 };
 
 // @desc get all applications by user
@@ -36,25 +73,24 @@ exports.getApplicationsEvent = (req, res) => {
 // @access Private
 exports.getApplicationsUser = (req, res) => {
   const { id } = req.user;
-  global.conn.query(
-    `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id,a.id FROM applications a 
-    JOIN poolevents p 
-    on a.poolevent_id=p.id 
-    WHERE a.user_id='${id}';`,
-    (error, applications) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: error.message
-        });
-      }
+  const query = `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id, a.id 
+  FROM applications a 
+  JOIN poolevents p 
+  on a.poolevent_id=p.id 
+  WHERE a.user_id="${id}";`;
 
-      res.status(200).json({
-        success: true,
-        data: applications
+  global.conn.query(query, (error, applications) => {
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
       });
     }
-  );
+    res.status(200).json({
+      success: true,
+      data: applications
+    });
+  });
 };
 
 // @desc get application by id
@@ -137,11 +173,37 @@ exports.deleteApplication = (req, res) => {
 // @access Private
 exports.putApplication = (req, res) => {
   const { body } = req;
-  const { id } = req.user;
-
+  const { id } = req.params;
+  console.log(body);
   global.conn.query(
-    `UPDATE applications SET ? WHERE id=${id};`,
+    `UPDATE applications SET ? WHERE id="${id}";`,
     body,
+    (error, resp) => {
+      if (error) {
+        console.log(error);
+        res.status(400).json({
+          success: false,
+          message: `Error in putApplication: ${error.message}`
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          data: resp
+        });
+      }
+    }
+  );
+};
+
+// @desc edit application by id
+// @route GET /api/v1/application/:id/user/statistic
+// @access Private
+exports.getApplicationStatisticByUserId = (req, res) => {
+  const { userId } = req.params;
+  global.conn.query(
+    `select * from  
+    (select count(*) as rejected_count from applications where state="rejected" and user_id="${userId}")as rejected, 
+    (select count(*)as accepted_count from applications where state="accepted" and user_id="${userId}") as accepted;`,
     (error, resp) => {
       if (error) {
         res.status(400).json({
@@ -151,7 +213,7 @@ exports.putApplication = (req, res) => {
       } else {
         res.status(200).json({
           success: true,
-          data: resp
+          statistic: resp
         });
       }
     }

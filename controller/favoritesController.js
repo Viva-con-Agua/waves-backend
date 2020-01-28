@@ -5,7 +5,7 @@ const { incrementFaveCount } = require("../service/poolevent");
 exports.getFavoriteByUserId = (req, res) => {
   const { user } = req;
   const sql = `SELECT * FROM favorites f 
-  JOIN poolevents p ON f.poolevent_id=p.id 
+  JOIN poolevents p ON f.poolevent_id=p.id join locations l on l.poolevent_id=p.id
   WHERE f.user_id='${user.id}';`;
   global.conn.query(sql, (err, favorites) => {
     if (err) {
@@ -78,9 +78,11 @@ exports.deleteFavorite = (req, res) => {
 // @route DELETE /api/v1/favorite/:id
 // @access Private
 exports.getMostFavedPoolevents = (req, res) => {
-  const sql = `select * from poolevents p 
+  const sql = `select *, pt.name as type_name ,p.name as pe_name from poolevents p 
+  join poolevent_types pt on pt.idevent_type = p.idevent_type
+  where p.state="released"
   order by 
-  p.fave_count desc;`;
+  p.fave_count desc LIMIT 10;`;
   global.conn.query(sql, (error, resp) => {
     if (error) {
       res.status(400).json({
@@ -90,7 +92,7 @@ exports.getMostFavedPoolevents = (req, res) => {
     } else {
       res.status(200).json({
         success: true,
-        data: resp
+        recomandations: resp
       });
     }
   });
