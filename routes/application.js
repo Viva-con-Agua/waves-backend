@@ -5,7 +5,6 @@ const { check } = require("express-validator");
 
 const {
   deleteApplication,
-  getApplicationById,
   getApplicationsEvent,
   getApplicationsUser,
   postApplication,
@@ -27,13 +26,12 @@ router.route("/").post(
 
 router
   .route("/:id")
-  .get(getApplicationById)
   .put(verify, checkAccessControl("updateAny", "application"), putApplication)
   .delete(verify, deleteApplication);
 
 router.route("/poolevent/:id").get(getApplicationsEvent);
 
-router.route("/user/:id").get(verify, getApplicationsUser);
+router.route("/user").get(verify, getApplicationsUser);
 router
   .route("/user/:userId/statistic")
   .get(getApplicationStatisticByUserId);

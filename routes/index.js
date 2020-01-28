@@ -46,6 +46,14 @@ router.route("/info").get(verify, getInformation);
 
 router.route("/achievement/avg/:id").get(averageUserCompletedAchievement);
 
-router.route("/test").get((req,res)=>{checkProfileComplete('4a74141e-c2c0-46a0-9c0c-84bef8be7d0f')});
+router.route("/test").get((req, res) => {
+  global.conn.query(
+    "",
+    (error, poolevent) => {
+      if (error) throw error.message;
+      res.json({ poolevent });
+    }
+  );
+});
 
 module.exports = router;

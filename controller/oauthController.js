@@ -1,4 +1,6 @@
 const Axios = require("axios");
+const jwt = require("jsonwebtoken");
+
 const {
   updateRoles,
   updateUser,
@@ -58,6 +60,9 @@ exports.authenticate = async (req, res) => {
                 "roles",
                 p.roles.length < 2 ? p.roles[0].role : p.roles[1].role
               );
+              let signed = jwt.sign(p, process.env.JWT_SECRET);
+              console.log(jwt);
+              res.cookie("WAVES_JWT", signed);
               res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
               res.cookie(
                 "first_name",
@@ -102,6 +107,10 @@ exports.authenticate = async (req, res) => {
                 "roles",
                 p.roles.length < 2 ? p.roles[0].role : p.roles[1].role
               );
+              let signed = jwt.sign(p, process.env.JWT_SECRET);
+              console.log(signed);
+
+              res.cookie("WAVES_JWT", signed);
               res.cookie("last_name", p.profiles[0].supporter.lastName.trim());
               res.cookie("full_name", p.profiles[0].supporter.fullName.trim());
               res.cookie("access_token", s.access_token).redirect(state);
@@ -121,7 +130,7 @@ exports.authenticate = async (req, res) => {
 const fetchToken = async code => {
   try {
     const { data } = await Axios.get(
-      `${process.env.OAUTH_BASE_URI}/oauth2/access_token?grant_type=authorization_code&client_id=wavesex&code=${code}&redirect_uri=http://localhost/waves/api/v1/oauth`
+      `${process.env.OAUTH_BASE_URI}/drops/oauth2/access_token?grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&code=${code}&redirect_uri=${process.env.REDIRECT_URI}`
     );
     return data;
   } catch (error) {
@@ -132,10 +141,15 @@ const fetchToken = async code => {
 const fetchProfile = async access_token => {
   try {
     const { data } = await Axios.get(
-      `${process.env.OAUTH_BASE_URI}/oauth2/rest/profile?access_token=${access_token}`
+      `${process.env.OAUTH_BASE_URI}/drops/oauth2/rest/profile?access_token=${access_token}`
     );
-    console.log(`${process.env.OAUTH_BASE_URI}/oauth2/rest/profile?access_token=${access_token}`);
-    return data;
+    console.log(data);
+    const user = await Axios.post(
+      "https://stage.vivaconagua.org/drops/rest/user/4a74141e-c2c0-46a0-9c0c-84bef8be7d0f?client_secret=waves&client_id=wavesex",
+      {}
+    );
+
+    return user;
   } catch (error) {
     throw error;
   }

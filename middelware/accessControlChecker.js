@@ -33,7 +33,28 @@ const ac = (function() {
     .readAny("comment")
     .updateOwn("comment")
     .deleteAny("comment")
+    .createOwn("comment")
+    .grant("employee")
+    .readAny("poolevent")
+    .updateAny("poolevent")
+    .deleteAny("poolevent")
+    .createAny("poolevent")
+    .readAny("application")
+    .updateAny("application")
+    .deleteAny("application")
+    .createOwn("application")
+    .readAny("favorite")
+    .updateAny("favorite")
+    .deleteAny("favorite")
+    .createOwn("event_type")
+    .readAny("event_type")
+    .updateAny("event_type")
+    .createAny("event_type")
+    .readAny("comment")
+    .updateOwn("comment")
+    .deleteAny("comment")
     .createOwn("comment");
+
   return ac;
 })();
 

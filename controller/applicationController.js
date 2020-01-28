@@ -3,42 +3,47 @@ const { checkChallengeComplete } = require("../service/gamification");
 // @route GET /api/v1/application/event/:id
 // @access Private
 exports.getApplicationsEvent = (req, res) => {
-  const { id } = req.params;
-  global.conn.query(
-    `SELECT a.created_at,
-    a.id as application_id,
-    u.id as user_id,
-    u.first_name,
-    u.last_name,
-    a.text,
-    a.state
-    FROM applications a
-    JOIN users u ON u.id=a.user_id 
-    WHERE a.poolevent_id=${id};`,
-    (error, applications) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: error.message
-        });
-      }
-      getStatistic(applications, (error, result) => {
-        applications.statistic = result;
-        console.log(applications);
-
+  if (req.params) {
+    const { id } = req.params;
+    global.conn.query(
+      `SELECT a.created_at,
+      a.id as application_id,
+      u.id as user_id,
+      u.first_name,
+      u.last_name,
+      a.text,
+      a.state
+      FROM applications a
+      JOIN users u ON u.id=a.user_id 
+      WHERE a.poolevent_id=${id};`,
+      (error, applications) => {
         if (error) {
           res.status(400).json({
             success: false,
-            error: error.message
+            message: error.message
           });
         }
-        res.status(200).json({
-          success: true,
-          data: applications
+        getStatistic(applications, (error, result) => {
+          applications.statistic = result;
+          if (error) {
+            res.status(400).json({
+              success: false,
+              error: error.message
+            });
+          }
+          res.status(200).json({
+            success: true,
+            data: applications
+          });
         });
-      });
-    }
-  );
+      }
+    );
+  } else {
+    res.status(400).json({
+      success: false,
+      message: "event id missing"
+    });
+  }
 };
 
 const getStatistic = (applications, callback) => {
@@ -72,7 +77,7 @@ exports.getApplicationsUser = (req, res) => {
   FROM applications a 
   JOIN poolevents p 
   on a.poolevent_id=p.id 
-  WHERE a.user_id="${id} ";`;
+  WHERE a.user_id="${id}";`;
 
   global.conn.query(query, (error, applications) => {
     if (error) {
