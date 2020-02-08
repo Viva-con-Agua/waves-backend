@@ -66,6 +66,58 @@ exports.getPoolEvents = (req, res, next) => {
   });
 };
 
+
+// @desc get all poolevents
+// @route GET /api/v1/poolevent/notify
+// @access Public
+//TODO: pagination + sorting
+exports.getPoolEventsForNotifications = (req, res, next) => {
+  let filter = "";
+  let { limit, type, region } = req.query;
+  if (!limit) {
+    limit = 10;
+  }
+
+  if (type) {
+    filter += `AND p.type="${type.toUpperCase()}"`;
+  }
+
+  if (region) {
+    filter += `AND l.locality="${region}"`;
+  }
+
+  const sql = `SELECT 
+  p.id, 
+  p.name,
+  p.user_id,
+  p.created_at,
+  p.event_start,
+  p.event_end,
+  p.type, 
+  p.application_end, 
+  l.longitude,
+  l.latitude,
+  l.locality
+  FROM poolevents p 
+  JOIN locations l ON l.poolevent_id=p.id 
+  WHERE p.state="RELEASED" ${filter} LIMIT ${limit};`;
+  global.conn.query(sql, (error, poolevents) => {
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: poolevents
+    });
+  });
+};
+
+
+
 // @desc get poolevent by id
 // @route GET /api/v1/poolevent/:id
 // @access Public
