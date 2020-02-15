@@ -66,7 +66,6 @@ exports.getPoolEvents = (req, res, next) => {
   });
 };
 
-
 // @desc get all poolevents
 // @route GET /api/v1/poolevent/notify
 // @access Public
@@ -78,13 +77,16 @@ exports.getPoolEventsForNotifications = (req, res, next) => {
     limit = 10;
   }
 
-  if (type) {
-    filter += `AND p.type="${type.toUpperCase()}"`;
-  }
+  // if (type) {
+  //   // filter += `AND p.type="${type.toUpperCase()}"`;
+  // }
 
-  if (region) {
-    filter += `AND l.locality="${region}"`;
-  }
+  // if (region) {
+  //   filter += `AND l.locality="${region}"`;
+  // }
+
+  // console.log(type);  AND a.state!="REJECTED"
+  // console.log(region);  COUNT(a.id) AS applicationSum
 
   const sql = `SELECT 
   p.id, 
@@ -93,14 +95,18 @@ exports.getPoolEventsForNotifications = (req, res, next) => {
   p.created_at,
   p.event_start,
   p.event_end,
-  p.type, 
   p.application_end, 
+  p.supporter_lim,
   l.longitude,
   l.latitude,
-  l.locality
+  l.locality,
+  COUNT(a.id) AS applications
   FROM poolevents p 
   JOIN locations l ON l.poolevent_id=p.id 
-  WHERE p.state="RELEASED" ${filter} LIMIT ${limit};`;
+  LEFT JOIN applications a ON p.id=a.poolevent_id
+  WHERE p.state="RELEASED"
+  AND p.event_start >= CURRENT_TIMESTAMP
+  GROUP BY p.id;`;
   global.conn.query(sql, (error, poolevents) => {
     if (error) {
       res.status(400).json({
@@ -115,8 +121,6 @@ exports.getPoolEventsForNotifications = (req, res, next) => {
     });
   });
 };
-
-
 
 // @desc get poolevent by id
 // @route GET /api/v1/poolevent/:id
@@ -269,7 +273,8 @@ exports.deletePoolEvent = (req, res) => {
         res.status(400).json({
           success: false,
           message: `Error in deletePoolevent ${error.message}`
-        });}
+        });
+      }
       global.conn.query(
         `DELETE FROM descriptions d WHERE d.poolevent_id=${id}`,
         (error, d) => {
@@ -277,7 +282,8 @@ exports.deletePoolEvent = (req, res) => {
             res.status(400).json({
               success: false,
               message: `Error in deletePoolevent ${error.message}`
-            });}
+            });
+          }
           global.conn.query(
             `DELETE FROM poolevents WHERE poolevents.id='${id} ';`,
             (error, resp) => {
