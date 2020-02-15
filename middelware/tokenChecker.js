@@ -13,7 +13,7 @@ exports.verifyX = async (req, res, next) => {
       }
       const profile = await fetchProfile(access_token);
       req.user = profile;
-      next(null, profile);
+      return next(null, profile);
     } else {
       res.status(401).json({
         success: false,

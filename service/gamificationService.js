@@ -9,23 +9,38 @@ exports.checkChallengeComplete = (type, userId, callback) => {
   try {
     countEntriesByTableName(type, userId, (error, num) => {
       if (error) {
+        console.log("-->", error.message);
+
         callback(error);
       }
       updatePoints(num[0].count, userId, type, (error, resp) => {
         if (error) {
+          console.log("-->", error.message);
+
           callback(error);
         }
         joinChallengeOnProgress(userId, type, (error, progress) => {
           if (error) {
+            console.log("-->", error.message);
+
             callback(error);
           }
           if (progress.length > 0) {
             setChallengeToCompleted(progress, (error, resp) => {
               if (!error) {
-                sendNewBadge(progress, () => {
+                console.log("-->", error.message);
+                
+                sendNewBadge(progress, (error,resp) => {
+                  if(error){
+                    console.log(error);
+                    callback(error)
+
+                  }
                   callback(null, resp);
                 });
               } else {
+                console.log("-->", error.message);
+
                 callback(error);
               }
             });
@@ -36,6 +51,7 @@ exports.checkChallengeComplete = (type, userId, callback) => {
       });
     });
   } catch (error) {
+    console.log(error.message);
     callback(error);
   }
 };
@@ -50,6 +66,7 @@ const joinChallengeOnProgress = (userId, type, callback) => {
     AND bp.completed=0;`;
     global.conn.query(sql, (error, progress) => {
       if (error) {
+        console.log(error.message);
         callback(error);
       }
       callback(null, progress);
@@ -70,6 +87,8 @@ const updatePoints = (points, userId, type, callback) => {
       callback(null, resp);
     });
   } catch (error) {
+    console.log(error);
+
     callback(error);
   }
 };
@@ -89,6 +108,8 @@ const setChallengeToCompleted = (challenges, callback) => {
           challenge.user_id,
           (error, resp) => {
             if (error) {
+              console.log(error.message);
+
               callback(error);
             }
 
@@ -96,6 +117,8 @@ const setChallengeToCompleted = (challenges, callback) => {
           }
         );
       } else {
+        console.log(error.message);
+
         callback(error);
       }
     });
@@ -104,6 +127,8 @@ const setChallengeToCompleted = (challenges, callback) => {
 
 exports.initNewUsersAchievements = (userId, callback) => {
   getAllChallenges(async (error, challenges) => {
+    console.log(error.message);
+
     const challengeProgress = await challenges.map(({ badge_id, type }) => {
       return [userId, badge_id, type];
     });
@@ -130,6 +155,8 @@ const getAllChallenges = callback => {
   const selectAllChallenges = "SELECT * FROM challenges;";
   global.conn.query(selectAllChallenges, (error, challenges) => {
     if (error) {
+      console.log(error.message);
+
       callback(error);
     } else {
       callback(null, challenges);
@@ -143,6 +170,7 @@ exports.checkProfileComplete = userId => {
     (error, user) => {
       if (error) {
         console.log(error);
+        callback(error);
       }
       let values = Object.values(user[0]);
       const filtered = values.filter(
@@ -157,9 +185,15 @@ exports.checkProfileComplete = userId => {
         (error, progress) => {
           console.log(error, progress);
           joinChallengeOnProgress(userId, "profiles", (error, joined) => {
+            if (error) {
+              callback(error);
+            }
             console.log(error, joined);
             if (joined > 0) {
               setChallengeToCompleted(joined, (error, complete) => {
+                if (error) {
+                  callback(error);
+                }
                 console.log(error, complete);
               });
             }
@@ -176,6 +210,7 @@ exports.checkProfileVerified = userId => {
     (error, user) => {
       if (error) {
         console.log(error);
+        callback(error)
       }
       if (user.length > 0) {
         if (user[0].verified) {

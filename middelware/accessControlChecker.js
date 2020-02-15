@@ -117,21 +117,32 @@ const isVolunteerManager = crewRole => {
 };
 
 exports.pooleventAccessControl = async (req, res, next) => {
+  let i = 0;
   try {
     const { roles } = req.user;
     if (isAdmin(roles)) {
-      next();
+      console.log(i++);
+      return next();
     }
     const { id } = req.params;
     if (req.user.profiles[0].supporter.roles.length > 0) {
+      console.log(i++);
+
       const crewRole = req.user.profiles[0].supporter.roles[0];
       isvm = isVolunteerManager(crewRole);
     } else {
+      console.log(i++);
+
       res.status(403).json({ success: false, message: "unauthorized" });
     }
     if (id) {
+      console.log(i++);
+
       getPooleventById(id, async (error, poolevent) => {
         if (error) {
+          console.log(i++);
+
+          console.log(error);
           res
             .status(500)
             .json({ success: false, message: "internal server error" });
@@ -140,23 +151,33 @@ exports.pooleventAccessControl = async (req, res, next) => {
           res.status(500).json({ success: false, message: "event not found" });
         }
         fetchCrewByUserId(poolevent[0].user_id, async (error, crew) => {
+          console.log(i++);
           if (error) {
+            console.log(error);
+            console.log(i++);
+
             res.status(500).json({
               success: false,
               message: `internal message ${error.message}`
             });
           }
           if (isvm.role == "VolunteerManager" && isvm.city == crew) {
-            next();
+            console.log(i++);
+
+            return next();
           }
         });
       });
     } else {
+      console.log(i++);
       if (isvm.role == "VolunteerManager") {
-        next();
+        return next();
       }
     }
   } catch (error) {
+    console.log(error);
+    console.log(i++);
+
     res.status(500).json({ success: false, message: "internal server error" });
   }
 };

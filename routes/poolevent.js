@@ -18,9 +18,7 @@ const {
 router
   .route("/")
   .get(getPoolEvents)
-  .post(
-    verifyX,
-    pooleventAccessControl,
+  .post(verifyX, pooleventAccessControl,
     [
       check("front.name")
         .not()
@@ -73,8 +71,8 @@ router
     verify,
     checkAccessControl("updateAny", "poolevent"),
     deletePoolEvent
-  ); 
+  );
 
-router.route("/user/me").get(verify, getPoolEventByUserId); //private
+router.route("/user/me").get(verifyX, getPoolEventByUserId); //private
 
 module.exports = router;

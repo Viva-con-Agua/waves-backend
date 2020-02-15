@@ -16,7 +16,7 @@ const {
 } = require("../controller/applicationController");
 
 router.route("/").post(
-  verify,
+  verifyX,
   [
     check("text").isString(),
     check("poolevent_id")

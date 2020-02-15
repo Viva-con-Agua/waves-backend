@@ -177,6 +177,8 @@ exports.postPoolEvent = (req, res) => {
   front.user_id = req.user.id;
   savePoolevent(front, (error, pooleventResp) => {
     if (error) {
+      console.log("-->", error.message);
+
       res.status(400).json({
         message: error.message
       });
@@ -184,6 +186,8 @@ exports.postPoolEvent = (req, res) => {
     location.poolevent_id = pooleventResp.insertId;
     saveLocation(location, (error, locationResp) => {
       if (error) {
+        console.log("-->", error.message);
+
         res.status(400).json({
           message: error
         });
@@ -191,10 +195,14 @@ exports.postPoolEvent = (req, res) => {
       description.poolevent_id = pooleventResp.insertId;
       saveDescription(description, (error, descriptionResp) => {
         if (error) {
+          console.log("-->", error.message);
+
           res.status(400).json({ message: error.message });
         }
         saveNotification("poolevents", pooleventResp.insertId, error => {
           if (error) {
+            console.log("-->", error.message);
+
             res.status(400).json({ message: error.message });
           }
           checkChallengeComplete(
@@ -202,6 +210,8 @@ exports.postPoolEvent = (req, res) => {
             req.user.id,
             (error, progress) => {
               if (error) {
+                console.log("-->", error.message);
+
                 res
                   .status(400)
                   .json({ success: false, message: error.message });
@@ -289,6 +299,8 @@ exports.putPoolEvent = (req, res) => {
             body.location,
             (error, response) => {
               if (error) {
+                console.log("1", error.message);
+
                 res.status(400).json({
                   success: false,
                   message: `Error in putPoolEvent: ${error.message}`
@@ -302,6 +314,7 @@ exports.putPoolEvent = (req, res) => {
               body.description,
               (error, response) => {
                 if (error) {
+                  console.log("2", error.message);
                   res.status(400).json({
                     success: false,
                     message: `Error in putPoolEvent: ${error.message}`
@@ -325,6 +338,8 @@ exports.putPoolEvent = (req, res) => {
             body.description,
             (error, response) => {
               if (error) {
+                console.log("3", error.message);
+
                 res.status(400).json({
                   success: false,
                   message: `Error in putPoolEvent: ${error.message}`
