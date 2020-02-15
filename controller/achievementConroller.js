@@ -22,14 +22,14 @@ exports.postAchievement = (req, res) => {
         } else {
           res.status(400).json({
             success: false,
-            message: error
+            message: error.message
           });
         }
       });
     } else {
       res.status(400).json({
         success: false,
-        message: error
+        message: error.message
       });
     }
   });

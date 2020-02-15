@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 exports.getAllUsersIds = callback => {
   const sql = "SELECT users.id FROM users";
   global.conn.query(sql, (error, rows) => {
@@ -110,5 +112,86 @@ exports.getRolesByUserId = (user_id, callback) => {
     });
   } catch (error) {
     callback(error);
+  }
+};
+
+exports.fetchUserById = async (user_id, callback) => {
+  try {
+    const { data } = await axios.post(
+      `${process.env.OAUTH_BASE_URI}/drops/rest/user/${user_id}?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}`,
+      {}
+    );
+    callback(null, data);
+  } catch (error) {
+    callback(error.message);
+  }
+};
+
+exports.fetchAllUsers = async (user_id, callback) => {
+  try {
+    const { data } = await axios.get(
+      `${process.env.OAUTH_BASE_URI}/drops/rest/user?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}`
+    );
+    callback(null, data);
+  } catch (error) {
+    callback(error.message);
+  }
+};
+
+exports.fetchToken = async code => {
+  try {
+    const { data } = await axios.get(
+      `${process.env.OAUTH_BASE_URI}/drops/oauth2/access_token?grant_type=authorization_code&client_id=${process.env.CLIENT_ID}&code=${code}&redirect_uri=${process.env.REDIRECT_URI}`
+    );
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.fetchProfile = async (access_token) => {
+  try {
+    const { data } = await axios.get(
+      `${process.env.OAUTH_BASE_URI}/drops/oauth2/rest/profile?access_token=${access_token}`
+    );
+
+    console.log("-->", data);
+
+    console.log(
+      `${process.env.OAUTH_BASE_URI}/drops/oauth2/rest/profile?access_token=${access_token}`
+    );
+
+    const user = await axios.post(
+      `${process.env.OAUTH_BASE_URI}/drops/rest/user/${data.id}?client_secret=waves&client_id=wavesex`,
+      {}
+    );
+    return user.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.fetchCrewByUserId = (user_id, callback) => {
+  try {
+    this.fetchUserById(user_id, (error, user) => {
+      if (error) {
+        callback(error.message);
+      }
+      if (user) {
+        let profiles = user.profiles[0];
+        if (profiles.length > 0) {
+          let supporter = profiles[0].supporter;
+          if (supporter) {
+            let crew = supporter.crew;
+            if (crew) {
+              callback(null, crew);
+            }
+          }
+        }
+      }
+      return false;
+    });
+  } catch (error) {
+    callback(error.message);
   }
 };

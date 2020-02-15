@@ -1,11 +1,13 @@
-const { incrementFaveCount } = require("../service/poolevent");
+const { incrementFaveCount } = require("../service/pooleventService");
 // @desc get favorite by userId
 // @route GET /api/v1/favorite/:id
 // @access private
 exports.getFavoriteByUserId = (req, res) => {
   const { user } = req;
-  const sql = `SELECT * FROM favorites f 
-  JOIN poolevents p ON f.poolevent_id=p.id join locations l on l.poolevent_id=p.id
+  const sql = `SELECT l.*, pt.*,p.id,p.name,p.website,p.event_start,p.event_end FROM favorites f 
+  JOIN poolevents p ON f.poolevent_id=p.id 
+  join locations l on l.poolevent_id=p.id
+  join poolevent_types pt on p.idevent_type=pt.idevent_type
   WHERE f.user_id='${user.id}';`;
   global.conn.query(sql, (err, favorites) => {
     if (err) {
@@ -36,7 +38,6 @@ exports.postFavorite = (req, res) => {
         messaage: error.message
       });
     } else {
-      console.log(body.poolevent_id);
       incrementFaveCount(body.poolevent_id, (error, resp) => {
         if (error) {
           res.status(400).json({
