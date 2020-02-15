@@ -1,4 +1,6 @@
-const { checkChallengeComplete } = require("../service/gamification");
+const { checkChallengeComplete } = require("../service/gamificationService");
+const { fetchUserById } = require("../service/usersService");
+
 // @desc get all applications by poolevent
 // @route GET /api/v1/application/event/:id
 // @access Private
@@ -23,17 +25,24 @@ exports.getApplicationsEvent = (req, res) => {
             message: error.message
           });
         }
-        getStatistic(applications, (error, result) => {
-          applications.statistic = result;
+        getStatistic(applications, (error, app_stats) => {
           if (error) {
             res.status(400).json({
               success: false,
               error: error.message
             });
           }
-          res.status(200).json({
-            success: true,
-            data: applications
+          resolveUserId(app_stats, (error, app_stats_user) => {
+            if (error) {
+              res.status(400).json({
+                success: false,
+                error: error.message
+              });
+            }
+            res.status(200).json({
+              success: true,
+              data: app_stats_user
+            });
           });
         });
       }
@@ -180,7 +189,6 @@ exports.putApplication = (req, res) => {
     body,
     (error, resp) => {
       if (error) {
-        console.log(error);
         res.status(400).json({
           success: false,
           message: `Error in putApplication: ${error.message}`
@@ -218,4 +226,23 @@ exports.getApplicationStatisticByUserId = (req, res) => {
       }
     }
   );
+};
+
+const resolveUserId = async (applications, callback) => {
+  let result = [];
+  let i = 0;
+  applications.map(application => {
+    fetchUserById(application.user_id, (error, user) => {
+      if (error) {
+        callback(error);
+      }
+      application.user = user;
+      result.push(application);
+
+      if (applications.length - 1 === i) {
+        callback(null, result);
+      }
+      i++;
+    });
+  });
 };

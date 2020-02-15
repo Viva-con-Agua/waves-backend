@@ -1,6 +1,9 @@
 const router = require("express").Router();
-const { verify } = require("../middelware/tokenChecker");
-const { checkAccessControl } = require("../middelware/accessControlChecker");
+const { verify, verifyX } = require("../middelware/tokenChecker");
+const {
+  pooleventAccessControl,
+  applicationAccessControl
+} = require("../middelware/accessControlChecker");
 const { check } = require("express-validator");
 
 const {
@@ -26,14 +29,13 @@ router.route("/").post(
 
 router
   .route("/:id")
-  .put(verify, checkAccessControl("updateAny", "application"), putApplication)
+  .put(verifyX, applicationAccessControl, putApplication)
   .delete(verify, deleteApplication);
 
-router.route("/poolevent/:id").get(getApplicationsEvent);
+router
+  .route("/poolevent/:id")
+  .get(verifyX, pooleventAccessControl, getApplicationsEvent);
 
 router.route("/user").get(verify, getApplicationsUser);
-router
-  .route("/user/:userId/statistic")
-  .get(getApplicationStatisticByUserId);
 
 module.exports = router;

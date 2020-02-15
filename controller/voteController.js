@@ -1,4 +1,4 @@
-const { checkChallengeComplete } = require("../service/gamification");
+const { checkChallengeComplete } = require("../service/gamificationService");
 
 // @desc get vote by id
 // @route GET /api/v1/vote/:id

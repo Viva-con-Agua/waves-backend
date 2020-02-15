@@ -2,7 +2,7 @@ const { countEntriesByTableName } = require("./abstractService");
 const {
   sendNewBadge,
   saveNotificationByUser
-} = require("../service/notification");
+} = require("./notificationService");
 
 //checks if a challenge is completed and fires a notification if so
 exports.checkChallengeComplete = (type, userId, callback) => {

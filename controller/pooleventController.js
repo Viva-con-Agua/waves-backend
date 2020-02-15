@@ -1,9 +1,11 @@
-const { saveNotification } = require("../service/notification");
+const { saveNotification } = require("../service/notificationService");
 const { validationResult } = require("express-validator");
-const { checkChallengeComplete } = require("../service/gamification");
-const { savePoolevent } = require("../service/poolevent");
-const { saveLocation } = require("../service/location");
-const { saveDescription } = require("../service/description");
+const { checkChallengeComplete } = require("../service/gamificationService");
+const { savePoolevent } = require("../service/pooleventService");
+const { saveLocation } = require("../service/locationService");
+const { saveDescription } = require("../service/descriptionService");
+
+const { fetchUserById } = require("../service/usersService");
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
@@ -52,7 +54,6 @@ exports.getPoolEvents = (req, res, next) => {
   WHERE ${filter} LIMIT ${limit};`;
   global.conn.query(sql, (error, poolevents) => {
     if (error) {
-      console.log(error);
       res.status(400).json({
         success: false,
         message: error.message
@@ -85,6 +86,7 @@ exports.getPoolEventById = (req, res) => {
     } else {
       if (poolevent.length > 0) {
         const {
+          user_id,
           asp_event_id,
           event_name,
           poolevent_id,
@@ -107,36 +109,50 @@ exports.getPoolEventById = (req, res) => {
           text,
           html
         } = poolevent[0];
-
-        res.status(200).json({
-          success: true,
-          data: {
-            poolevent_id,
-            event_name,
-            type_name,
-            event_start,
-            event_end,
-            application_start,
-            application_end,
-            website,
-            supporter_lim,
-            state,
-            asp_event_id,
-            location: {
-              route,
-              street_number,
-              country,
-              locality,
-              postal_code,
-              desc,
-              longitude,
-              latitude
-            },
-            description: {
-              text,
-              html
-            }
+        fetchUserById(asp_event_id, (error, asp_event_id) => {
+          if (error) {
+            res.status(400).json({ success: false, message: error.message });
           }
+          fetchUserById(user_id, (error, user) => {
+            if (error) {
+              res.status(400).json({ success: false, message: error.message });
+            }
+            let crew = "";
+            if (user) {
+              crew = user.profiles[0].supporter.crew.name;
+            }
+            res.status(200).json({
+              success: true,
+              data: {
+                poolevent_id,
+                event_name,
+                type_name,
+                event_start,
+                event_end,
+                application_start,
+                application_end,
+                website,
+                supporter_lim,
+                state,
+                asp_event_id,
+                crew,
+                location: {
+                  route,
+                  street_number,
+                  country,
+                  locality,
+                  postal_code,
+                  desc,
+                  longitude,
+                  latitude
+                },
+                description: {
+                  text,
+                  html
+                }
+              }
+            });
+          });
         });
       } else {
         res.status(400).json({ success: false, error: "Poolevent not found" });
@@ -151,20 +167,18 @@ exports.getPoolEventById = (req, res) => {
 //TODO: desc
 exports.postPoolEvent = (req, res) => {
   const errors = validationResult(req);
-  console.log(errors);
   if (!errors.isEmpty()) {
     return res.status(422).json({
       success: false,
       errors: errors.array()
     });
   }
-
   const { front, location, description } = req.body;
   front.user_id = req.user.id;
   savePoolevent(front, (error, pooleventResp) => {
     if (error) {
       res.status(400).json({
-        message: error
+        message: error.message
       });
     }
     location.poolevent_id = pooleventResp.insertId;
@@ -177,18 +191,20 @@ exports.postPoolEvent = (req, res) => {
       description.poolevent_id = pooleventResp.insertId;
       saveDescription(description, (error, descriptionResp) => {
         if (error) {
-          res.status(400).json({ message: error });
+          res.status(400).json({ message: error.message });
         }
         saveNotification("poolevents", pooleventResp.insertId, error => {
           if (error) {
-            res.status(400).json({ message: error });
+            res.status(400).json({ message: error.message });
           }
           checkChallengeComplete(
             "poolevents",
             req.user.id,
             (error, progress) => {
               if (error) {
-                res.status(400).json({ message: error });
+                res
+                  .status(400)
+                  .json({ success: false, message: error.message });
               }
               global.em.emit("NEW_POOLEVENT", pooleventResp.insertId);
 
@@ -217,7 +233,8 @@ exports.deletePoolEvent = (req, res) => {
         res.status(400).json({
           success: false,
           message: `Error in deletePoolevent ${error.message}`
-        });}
+        });
+      }
       global.conn.query(
         `DELETE FROM descriptions d WHERE d.poolevent_id=${id}`,
         (error, d) => {
@@ -225,7 +242,8 @@ exports.deletePoolEvent = (req, res) => {
             res.status(400).json({
               success: false,
               message: `Error in deletePoolevent ${error.message}`
-            });}
+            });
+          }
           global.conn.query(
             `DELETE FROM poolevents WHERE poolevents.id='${id} ';`,
             (error, resp) => {
@@ -260,7 +278,6 @@ exports.putPoolEvent = (req, res) => {
     body.front,
     (error, resp) => {
       if (error) {
-        console.log(error);
         res.status(400).json({
           success: false,
           message: `Error in putPoolEvent: ${error.message}`
@@ -272,7 +289,6 @@ exports.putPoolEvent = (req, res) => {
             body.location,
             (error, response) => {
               if (error) {
-                console.log(error);
                 res.status(400).json({
                   success: false,
                   message: `Error in putPoolEvent: ${error.message}`
@@ -286,7 +302,6 @@ exports.putPoolEvent = (req, res) => {
               body.description,
               (error, response) => {
                 if (error) {
-                  console.log(error);
                   res.status(400).json({
                     success: false,
                     message: `Error in putPoolEvent: ${error.message}`
@@ -310,7 +325,6 @@ exports.putPoolEvent = (req, res) => {
             body.description,
             (error, response) => {
               if (error) {
-                console.log(error);
                 res.status(400).json({
                   success: false,
                   message: `Error in putPoolEvent: ${error.message}`
@@ -343,6 +357,7 @@ exports.getPoolEventByUserId = (req, res) => {
     p.event_start,
     p.event_end,
     p.application_end, 
+    p.state, 
     l.route, 
     l.street_number,
     l.locality,

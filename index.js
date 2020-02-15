@@ -1,5 +1,5 @@
 const { connectMysql } = require("./config/connectMysql");
-const eventEmitter = require("./service/eventEmitter");
+const eventEmitter = require("./service/eventEmitterService");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const morgan = require("morgan")("dev");
@@ -56,7 +56,17 @@ app.use("/waves/api/v1/eventtype", eventtype);
 app.use("/waves/api/v1/month", month);
 app.use("/waves/api/v1/trophie", trophie);
 
+app.use((req, res, callback) => {
+  const error = new Error("not found");
+  error.status=404;
+  callback(error);
+});
 
+app.use((error, req, res, callback) => {
+  res
+    .status(error.status || 500)
+    .json({ success: false, message: error.message });
+});
 
 const port = process.env.PORT || 5000;
 

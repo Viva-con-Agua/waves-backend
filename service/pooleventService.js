@@ -45,3 +45,14 @@ exports.incrementFaveCount = (id, callback) => {
     callback(error);
   }
 };
+
+exports.getPooleventById = (id, callback) => {
+  const sql = "SELECT * from poolevents WHERE id=?;";
+  global.conn.query(sql, id, (error, poolevent) => {
+    if (!error) {
+      callback(null, poolevent);
+    } else {
+      callback(error);
+    }
+  });
+};

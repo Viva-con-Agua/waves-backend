@@ -1,4 +1,33 @@
-const { getRolesByUserId } = require("../service/users");
+const { getRolesByUserId, fetchProfile } = require("../service/usersService");
+
+exports.verifyX = async (req, res, next) => {
+  try {
+    const { authorization } = req.headers;
+    if (authorization) {
+      const [bearer, access_token] = await authorization.split(" ");
+      if (access_token === null) {
+        res.status(401).json({
+          success: false,
+          error: "unauthorized, access token required"
+        });
+      }
+      const profile = await fetchProfile(access_token);
+      req.user = profile;
+      next(null, profile);
+    } else {
+      res.status(401).json({
+        success: false,
+        error: "unauthorized, access token required"
+      });
+    }
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      error: "unauthorized: token expired"
+    });
+  }
+};
+
 exports.verify = async (req, res, next) => {
   try {
     const { authorization } = req.headers;

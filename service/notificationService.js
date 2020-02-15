@@ -1,4 +1,4 @@
-const { getAllUsersIds } = require("../service/users");
+const { getAllUsersIds } = require("./usersService");
 
 exports.saveNotification = (type, source_id, callback) => {
   console.log(type, source_id);

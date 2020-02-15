@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const { check } = require("express-validator");
-const { verify } = require("../middelware/tokenChecker");
-const { checkAccessControl } = require("../middelware/accessControlChecker");
+const { verify, verifyX } = require("../middelware/tokenChecker");
+const {
+  checkAccessControl,
+  pooleventAccessControl
+} = require("../middelware/accessControlChecker");
 
 const {
   getPoolEventByUserId,
@@ -16,8 +19,8 @@ router
   .route("/")
   .get(getPoolEvents)
   .post(
-    verify,
-    checkAccessControl("createAny", "poolevent"),
+    verifyX,
+    pooleventAccessControl,
     [
       check("front.name")
         .not()
@@ -30,10 +33,10 @@ router
       check("front.active_user_only").isBoolean(),
       check("front.website").isURL(),
       check("front.supporter_lim").isNumeric(),
-      check("front.application_start").isISO8601(),
-      check("front.application_end").isISO8601(),
-      check("front.event_start").isISO8601(),
-      check("front.event_end").isISO8601(),
+      check("front.application_start").isNumeric(),
+      check("front.application_end").isNumeric(),
+      check("front.event_start").isNumeric(),
+      check("front.event_end").isNumeric(),
       check("location.route").isString(),
       check("location.street_number")
         .not()
@@ -58,7 +61,6 @@ router
       check("location.desc").isString(),
       check("description.text").isString(),
       check("description.html").isString()
-
     ],
     postPoolEvent
   );
@@ -66,12 +68,12 @@ router
 router
   .route("/:id")
   .get(getPoolEventById)
-  .put(verify, checkAccessControl("updateAny", "poolevent"), putPoolEvent)
+  .put(verifyX, pooleventAccessControl, putPoolEvent)
   .delete(
     verify,
     checkAccessControl("updateAny", "poolevent"),
     deletePoolEvent
-  ); //private
+  ); 
 
 router.route("/user/me").get(verify, getPoolEventByUserId); //private
 

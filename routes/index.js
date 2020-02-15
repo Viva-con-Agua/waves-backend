@@ -5,8 +5,10 @@ const { initGamificationProfile } = require("../controller/profileController");
 const { authenticate } = require("../controller/oauthController");
 const { postAchievement } = require("../controller/achievementConroller");
 const { getInformation } = require("../controller/infoController");
-const { verify } = require("../middelware/tokenChecker");
-const { checkProfileComplete } = require("../service/gamification");
+const { verify, verifyX } = require("../middelware/tokenChecker");
+const {
+  pooleventAccessControl
+} = require("../middelware/accessControlChecker");
 
 const { getApplicationsUser } = require("../controller/applicationController");
 
@@ -42,18 +44,12 @@ router.route("/onboarding").get(getApplicationsUser);
 
 router.route("/oauth").get(authenticate);
 
-router.route("/info").get(verify, getInformation);
+router.route("/info").get(verifyX, pooleventAccessControl, getInformation);
 
 router.route("/achievement/avg/:id").get(averageUserCompletedAchievement);
 
-router.route("/test").get((req, res) => {
-  global.conn.query(
-    "",
-    (error, poolevent) => {
-      if (error) throw error.message;
-      res.json({ poolevent });
-    }
-  );
+router.route("/test", verifyX, pooleventAccessControl).get((req, res) => {
+  res.json({ scoop: "scoop", message: req.user });
 });
 
 module.exports = router;

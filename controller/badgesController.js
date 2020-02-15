@@ -98,7 +98,7 @@ exports.getAllBadges = (req, res) => {
 exports.averageUserCompletedAchievement = (req, res) => {
   getBadgeProgressByBadgeId(req.params.id, (error, average) => {
     if (error) {
-      res.status(500).json({ success: false, message: error });
+      res.status(500).json({ success: false, message: error.message });
     }
     res.json({ success: true, average });
   });

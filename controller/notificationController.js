@@ -1,5 +1,5 @@
 exports.getNotificationByUserId = async (req, res) => {
-  console.log("scoop")
+  console.log("scoop");
   try {
     const { id } = req.user;
     let { limit } = req.query;
@@ -16,17 +16,13 @@ exports.getNotificationByUserId = async (req, res) => {
     on nb.id=n.id 
     WHERE n.user_id='${id}' order by created_at desc LIMIT ${limit}`;
     global.conn.query(sql, id, (error, notifications) => {
-      console.log(error, notifications);
       if (!error) {
         global.conn.query(
           `UPDATE notifications SET ? 
           WHERE user_id='${id}' AND dirty=0;`,
           { dirty: 1 },
           (error, resp) => {
-            console.log("-->", error, resp);
-
             resolveIds(notifications, (error, resolvedNotification) => {
-              console.log(error);
               res.status(200).json({
                 success: true,
                 data: resolvedNotification
@@ -35,18 +31,16 @@ exports.getNotificationByUserId = async (req, res) => {
           }
         );
       } else {
-        console.log(error);
         res.status(400).json({
           success: false,
-          message: error
+          message: error.message
         });
       }
     });
   } catch (error) {
-    console.log(error);
     res.status(400).json({
       success: false,
-      message: error
+      message: error.message
     });
   }
 };
