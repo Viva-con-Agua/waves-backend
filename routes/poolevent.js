@@ -6,6 +6,7 @@ const { checkAccessControl } = require("../middelware/accessControlChecker");
 const {
   getPoolEventByUserId,
   getPoolEventsForNotifications,
+  getPoolEventByIdForNotifications,
   deletePoolEvent,
   getPoolEventById,
   getPoolEvents,
@@ -59,15 +60,13 @@ router
       check("location.desc").isString(),
       check("description.text").isString(),
       check("description.html").isString()
-
     ],
     postPoolEvent
   );
 
-router
-  .route("/notify")
-  .get(getPoolEventsForNotifications);
+router.route("/notify").get(getPoolEventsForNotifications);
 
+router.route("/notify/:id").get(getPoolEventByIdForNotifications);
 
 router
   .route("/:id")
@@ -78,8 +77,6 @@ router
     checkAccessControl("updateAny", "poolevent"),
     deletePoolEvent
   ); //private
-
-
 
 router.route("/user/me").get(verify, getPoolEventByUserId); //private
 

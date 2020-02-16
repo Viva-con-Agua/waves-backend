@@ -201,6 +201,29 @@ exports.getPoolEventById = (req, res) => {
   });
 };
 
+// @desc get poolevent by id
+// @route GET /api/v1/poolevent/notify/:id
+// @access Public
+exports.getPoolEventByIdForNotifications = (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM poolevents AS p  
+              WHERE p.id=${id};`;
+
+  global.conn.query(sql, (err, poolevent) => {
+    if (err) {
+      res.status(400).json({
+        success: false,
+        message: `Error in getPoolEventByIdForNotifications: ${err.message}`
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: poolevent
+      });
+    }
+  });
+};
+
 // @desc  create poolevent
 // @route POST /api/v1/poolevent
 // @access Private

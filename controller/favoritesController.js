@@ -3,10 +3,11 @@ const { incrementFaveCount } = require("../service/poolevent");
 // @route GET /api/v1/favorite/:id
 // @access private
 exports.getFavoriteByUserId = (req, res) => {
-  const { user } = req;
+  const { id } = req.params;
   const sql = `SELECT * FROM favorites f 
   JOIN poolevents p ON f.poolevent_id=p.id join locations l on l.poolevent_id=p.id
-  WHERE f.user_id='${user.id}';`;
+  WHERE f.user_id="${id}";`;
+  // console.log(sql);
   global.conn.query(sql, (err, favorites) => {
     if (err) {
       res.status(400).json({

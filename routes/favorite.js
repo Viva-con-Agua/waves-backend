@@ -9,11 +9,15 @@ const {
   getMostFavedPoolevents
 } = require("../controller/favoritesController");
 
-router.route("/:userId").get(verify,checkAccessControl('readOwn', 'favorite') , getFavoriteByUserId); //private
+router.route("/user/:id").get(getFavoriteByUserId); //private
 
-router.route("/:id").delete(verify,checkAccessControl('deleteOwn', 'favorite'), deleteFavorite); //private
+router
+  .route("/:id")
+  .delete(verify, checkAccessControl("deleteOwn", "favorite"), deleteFavorite); //private
 
-router.route("/").post(verify, checkAccessControl('createOwn', 'favorite'),postFavorite); //private
+router
+  .route("/")
+  .post(verify, checkAccessControl("createOwn", "favorite"), postFavorite); //private
 
 router.route("/most/me").get(getMostFavedPoolevents); //private
 

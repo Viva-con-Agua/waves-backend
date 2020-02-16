@@ -67,7 +67,7 @@ const getStatistic = (applications, callback) => {
 // @route GET /api/v1/application/user/:id
 // @access Private
 exports.getApplicationsUser = (req, res) => {
-  const { id } = req.user;
+  const { id } = req.params;
   const query = `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id, a.id 
   FROM applications a 
   JOIN poolevents p 

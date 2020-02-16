@@ -33,9 +33,7 @@ router
 
 router.route("/poolevent/:id").get(getApplicationsEvent);
 
-router.route("/user/:id").get(verify, getApplicationsUser);
-router
-  .route("/user/:userId/statistic")
-  .get(getApplicationStatisticByUserId);
+router.route("/user/:id").get(getApplicationsUser);
+router.route("/user/:userId/statistic").get(getApplicationStatisticByUserId);
 
 module.exports = router;

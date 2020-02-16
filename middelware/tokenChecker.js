@@ -9,6 +9,7 @@ exports.verify = async (req, res, next) => {
         error: "unauthorized, access token required"
       });
     }
+    console.log(access_token);
     conn.query(
       `SELECT * FROM users WHERE access_token='${access_token}'`,
       (error, user) => {
@@ -16,6 +17,7 @@ exports.verify = async (req, res, next) => {
           res.status(400).json({ success: false, error: error });
         }
         if (user.length > 0) {
+          console.log(user);
           getRolesByUserId(user[0].id, (error, roles) => {
             if (error) {
               res.status(400).json({
