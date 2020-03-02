@@ -1,4 +1,7 @@
 const { checkChallengeComplete } = require("../service/gamification");
+const NATS = require("nats");
+const nc = NATS.connect();
+
 // @desc get all applications by poolevent
 // @route GET /api/v1/application/event/:id
 // @access Private
@@ -92,7 +95,7 @@ exports.getApplicationsUser = (req, res) => {
 // @route GET /api/v1/application/:id
 // @access Private
 exports.getApplicationById = (req, res) => {
-  const { id } = req.user;
+  const { id } = req.params;
   global.conn.query(
     `SELECT * FROM applications p WHERE p.id='${id}';`,
     (err, application) => {
@@ -128,6 +131,7 @@ exports.postApplication = (req, res) => {
           message: `Error in create application: ${error.message}`
         });
       } else {
+        nc.publish("application.create", response.insertId.toString());
         checkChallengeComplete("applications", id, (error, progress) => {
           res.status(200).json({
             success: true,
@@ -154,6 +158,7 @@ exports.deleteApplication = (req, res) => {
           message: `Error in deleteApplication ${error.message}`
         });
       } else {
+        nc.publish("application.delete", id);
         res.status(200).json({
           success: true,
           data: resp
@@ -181,6 +186,7 @@ exports.putApplication = (req, res) => {
           message: `Error in putApplication: ${error.message}`
         });
       } else {
+        nc.publish("application.edit", id);
         res.status(200).json({
           success: true,
           data: resp

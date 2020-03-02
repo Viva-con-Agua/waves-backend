@@ -4,6 +4,8 @@ const { checkChallengeComplete } = require("../service/gamification");
 const { savePoolevent } = require("../service/poolevent");
 const { saveLocation } = require("../service/location");
 const { saveDescription } = require("../service/description");
+const NATS = require("nats");
+const nc = NATS.connect();
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
@@ -270,7 +272,7 @@ exports.postPoolEvent = (req, res) => {
                 res.status(400).json({ message: error });
               }
               global.em.emit("NEW_POOLEVENT", pooleventResp.insertId);
-
+              nc.publish("poolevent.create", pooleventResp.insertId.toString());
               res.status(200).json({
                 location: locationResp,
                 poolevent: pooleventResp,
@@ -316,6 +318,8 @@ exports.deletePoolEvent = (req, res) => {
                   message: `Error in deletePoolevent ${error.message}`
                 });
               } else {
+                nc.publish("poolevent.delete", id.toString());
+
                 res.status(200).json({
                   success: true,
                   data: resp
@@ -380,6 +384,8 @@ exports.putPoolEvent = (req, res) => {
               }
             );
           } else {
+            nc.publish("poolevent.edit", id.toString());
+
             res.status(200).json({
               success: true,
               data: response

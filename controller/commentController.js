@@ -1,4 +1,6 @@
 const { checkChallengeComplete } = require("../service/gamification");
+const NATS = require("nats");
+const nc = NATS.connect();
 
 // @desc get comment by id
 // @route GET /api/v1/comment/:id
@@ -30,9 +32,10 @@ exports.getCommentsByUserId = (req, res) => {
   const { userId } = req.params;
 
   const sql = `SELECT c.text, c.id, c.created_at, c.poolevent_id,
-              c.user_id,u.full_name, u.first_name,u.last_name 
+              c.user_id,u.full_name, u.first_name,u.last_name, p.name AS poolevent_name
               FROM comments c 
               JOIN users u ON c.user_id=u.id  
+              JOIN poolevents p ON c.poolevent_id=p.id  
               WHERE c.user_id='${userId}' order by c.created_at desc;`;
   global.conn.query(sql, (err, comment) => {
     if (err) {
@@ -87,6 +90,7 @@ exports.postComment = (req, res) => {
         messaage: error.message
       });
     } else {
+      nc.publish("comment.create", comment.insertId.toString());
       checkChallengeComplete("comments", id, (error, resp) => {
         if (error) {
           res.status(400).json({
@@ -116,6 +120,7 @@ exports.deleteComment = (req, res) => {
         message: `Error in deletecomment ${error.message}`
       });
     } else {
+      nc.publish("comment.delete", id);
       res.status(200).json({
         success: true,
         data: resp
@@ -142,6 +147,7 @@ exports.putComment = (req, res) => {
           message: `Error in putcomment: ${error.message}`
         });
       } else {
+        nc.publish("comment.edit", id);
         res.status(200).json({
           success: true,
           data: resp

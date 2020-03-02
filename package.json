@@ -30,6 +30,7 @@
     "morgan": "^1.9.1",
     "mysql": "^2.17.1",
     "mysql2": "^2.0.0",
+    "nats": "^1.4.2",
     "promise-mysql": "^4.1.1",
     "query-string": "^6.9.0",
     "socket.io": "^2.3.0",
