@@ -6,6 +6,8 @@ const { check } = require("express-validator");
 const {
   deleteComment,
   getCommentsByPooleventId,
+  getCommentsByUserId,
+  getCommentResponses,
   postComment,
   putComment
 } = require("../controller/commentController");
@@ -21,6 +23,8 @@ router.route("/").post(
 ); //private
 
 router.route("/:pooleventId").get(getCommentsByPooleventId);
+router.route("/response/:commentId").get(getCommentResponses);
+router.route("/user/:userId").get(getCommentsByUserId);
 
 router
   .route("/:id")

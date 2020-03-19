@@ -2,7 +2,9 @@ const { countEntriesByTableName } = require("./abstractService");
 const {
   sendNewBadge,
   saveNotificationByUser
-} = require("./notificationService");
+} = require("../service/notification");
+const NATS = require("nats");
+const nc = NATS.connect(process.env.nats_server);
 
 //checks if a challenge is completed and fires a notification if so
 exports.checkChallengeComplete = (type, userId, callback) => {
@@ -100,6 +102,7 @@ const setChallengeToCompleted = (challenges, callback) => {
       AND user_id="${challenge.user_id}";`;
     global.conn.query(sql, { completed: 1 }, (error, badge) => {
       if (!error && challenges.length - 1 == i) {
+        nc.publish("challenge", challenge.badge_id.toString());
         saveNotificationByUser(
           challenge.user_id,
           "",

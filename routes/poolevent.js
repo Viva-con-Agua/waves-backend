@@ -8,6 +8,7 @@ const {
 
 const {
   getPoolEventByUserId,
+  getPoolEventsForNotifications,
   deletePoolEvent,
   getPoolEventById,
   getPoolEvents,
@@ -18,7 +19,9 @@ const {
 router
   .route("/")
   .get(getPoolEvents)
-  .post(verifyX, pooleventAccessControl,
+  .post(
+    verifyX,
+    pooleventAccessControl,
     [
       check("front.name")
         .not()
@@ -62,6 +65,8 @@ router
     ],
     postPoolEvent
   );
+
+router.route("/notify").get(getPoolEventsForNotifications);
 
 router
   .route("/:id")

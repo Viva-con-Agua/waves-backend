@@ -1,5 +1,7 @@
-const { checkChallengeComplete } = require("../service/gamificationService");
-const { fetchUserById } = require("../service/usersService");
+const { checkChallengeComplete } = require("../service/gamification");
+const NATS = require("nats");
+const nc = NATS.connect(process.env.nats_server);
+
 
 // @desc get all applications by poolevent
 // @route GET /api/v1/application/event/:id
@@ -81,7 +83,7 @@ const getStatistic = (applications, callback) => {
 // @route GET /api/v1/application/user/:id
 // @access Private
 exports.getApplicationsUser = (req, res) => {
-  const { id } = req.user;
+  const { id } = req.params;
   const query = `SELECT a.created_at , a.text, a.state, p.name, a.poolevent_id, a.id 
   FROM applications a 
   JOIN poolevents p 
@@ -106,7 +108,7 @@ exports.getApplicationsUser = (req, res) => {
 // @route GET /api/v1/application/:id
 // @access Private
 exports.getApplicationById = (req, res) => {
-  const { id } = req.user;
+  const { id } = req.params;
   global.conn.query(
     `SELECT * FROM applications p WHERE p.id='${id}';`,
     (err, application) => {
@@ -142,6 +144,7 @@ exports.postApplication = (req, res) => {
           message: `Error in create application: ${error.message}`
         });
       } else {
+        nc.publish("application.create", response.insertId.toString());
         checkChallengeComplete("applications", id, (error, progress) => {
           res.status(200).json({
             success: true,
@@ -168,6 +171,7 @@ exports.deleteApplication = (req, res) => {
           message: `Error in deleteApplication ${error.message}`
         });
       } else {
+        nc.publish("application.delete", id);
         res.status(200).json({
           success: true,
           data: resp
@@ -194,6 +198,7 @@ exports.putApplication = (req, res) => {
           message: `Error in putApplication: ${error.message}`
         });
       } else {
+        nc.publish("application.edit", id);
         res.status(200).json({
           success: true,
           data: resp
@@ -227,6 +232,8 @@ exports.getApplicationStatisticByUserId = (req, res) => {
     }
   );
 };
+<<<<<<< HEAD
+=======
 
 const resolveUserId = async (applications, callback) => {
   let result = [];
@@ -246,3 +253,4 @@ const resolveUserId = async (applications, callback) => {
     });
   });
 };
+>>>>>>> develop

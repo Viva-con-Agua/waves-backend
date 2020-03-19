@@ -1,11 +1,12 @@
 const { saveNotification } = require("../service/notificationService");
 const { validationResult } = require("express-validator");
-const { checkChallengeComplete } = require("../service/gamificationService");
-const { savePoolevent } = require("../service/pooleventService");
-const { saveLocation } = require("../service/locationService");
-const { saveDescription } = require("../service/descriptionService");
+const { checkChallengeComplete } = require("../service/gamification");
+const { savePoolevent } = require("../service/poolevent");
+const { saveLocation } = require("../service/location");
+const { saveDescription } = require("../service/description");
+const NATS = require("nats");
+const nc = NATS.connect(process.env.nats_server);
 
-const { fetchUserById } = require("../service/usersService");
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
@@ -52,6 +53,62 @@ exports.getPoolEvents = (req, res, next) => {
   FROM poolevents p 
   JOIN locations l ON l.poolevent_id=p.id JOIN poolevent_types pt ON p.idevent_type=pt.idevent_type
   WHERE ${filter} LIMIT ${limit};`;
+  global.conn.query(sql, (error, poolevents) => {
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: poolevents
+    });
+  });
+};
+
+// @desc get all poolevents
+// @route GET /api/v1/poolevent/notify
+// @access Public
+//TODO: pagination + sorting
+exports.getPoolEventsForNotifications = (req, res, next) => {
+  let filter = "";
+  let { limit, type, region } = req.query;
+  if (!limit) {
+    limit = 10;
+  }
+
+  // if (type) {
+  //   // filter += `AND p.type="${type.toUpperCase()}"`;
+  // }
+
+  // if (region) {
+  //   filter += `AND l.locality="${region}"`;
+  // }
+
+  // console.log(type);  AND a.state!="REJECTED"
+  // console.log(region);  COUNT(a.id) AS applicationSum
+
+  const sql = `SELECT 
+  p.id, 
+  p.name,
+  p.user_id,
+  p.created_at,
+  p.event_start,
+  p.event_end,
+  p.application_end, 
+  p.supporter_lim,
+  l.longitude,
+  l.latitude,
+  l.locality,
+  COUNT(a.id) AS applications
+  FROM poolevents p 
+  JOIN locations l ON l.poolevent_id=p.id 
+  LEFT JOIN applications a ON p.id=a.poolevent_id
+  WHERE p.state="RELEASED"
+  AND p.event_start >= CURRENT_TIMESTAMP
+  GROUP BY p.id;`;
   global.conn.query(sql, (error, poolevents) => {
     if (error) {
       res.status(400).json({
@@ -161,6 +218,29 @@ exports.getPoolEventById = (req, res) => {
   });
 };
 
+// @desc get poolevent by id
+// @route GET /api/v1/poolevent/notify/:id
+// @access Public
+exports.getPoolEventByIdForNotifications = (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM poolevents AS p  
+              WHERE p.id=${id};`;
+
+  global.conn.query(sql, (err, poolevent) => {
+    if (err) {
+      res.status(400).json({
+        success: false,
+        message: `Error in getPoolEventByIdForNotifications: ${err.message}`
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: poolevent
+      });
+    }
+  });
+};
+
 // @desc  create poolevent
 // @route POST /api/v1/poolevent
 // @access Private
@@ -217,7 +297,7 @@ exports.postPoolEvent = (req, res) => {
                   .json({ success: false, message: error.message });
               }
               global.em.emit("NEW_POOLEVENT", pooleventResp.insertId);
-
+              nc.publish("poolevent.create", pooleventResp.insertId.toString());
               res.status(200).json({
                 location: locationResp,
                 poolevent: pooleventResp,
@@ -263,6 +343,8 @@ exports.deletePoolEvent = (req, res) => {
                   message: `Error in deletePoolevent ${error.message}`
                 });
               } else {
+                nc.publish("poolevent.delete", id.toString());
+
                 res.status(200).json({
                   success: true,
                   data: resp
@@ -327,6 +409,8 @@ exports.putPoolEvent = (req, res) => {
               }
             );
           } else {
+            nc.publish("poolevent.edit", id.toString());
+
             res.status(200).json({
               success: true,
               data: response

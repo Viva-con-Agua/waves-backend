@@ -1,4 +1,6 @@
-const { checkChallengeComplete } = require("../service/gamificationService");
+const { checkChallengeComplete } = require("../service/gamification");
+const NATS = require("nats");
+const nc = NATS.connect(process.env.nats_server);
 
 // @desc get vote by id
 // @route GET /api/v1/vote/:id
@@ -41,6 +43,7 @@ exports.postvote = (req, res) => {
         if (error) {
           res.status(400).json({ success: false, messaage: error.message });
         }
+        nc.publish("vote.create", vote.insertId.toString());
         res.status(200).json({ success: true, data: vote });
       });
     }
@@ -62,6 +65,7 @@ exports.deletevote = (req, res) => {
           message: `Error in deletevote ${error.message}`
         });
       } else {
+        nc.publish("vote.delete", id);
         res.status(200).json({
           success: true,
           data: resp
