@@ -4,7 +4,7 @@ const {
   saveNotificationByUser
 } = require("../service/notification");
 const NATS = require("nats");
-const nc = NATS.connect();
+const nc = NATS.connect(process.env.nats_server);
 
 //checks if a challenge is completed and fires a notification if so
 exports.checkChallengeComplete = (type, userId, callback) => {

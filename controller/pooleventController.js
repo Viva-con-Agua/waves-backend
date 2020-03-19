@@ -5,7 +5,7 @@ const { savePoolevent } = require("../service/poolevent");
 const { saveLocation } = require("../service/location");
 const { saveDescription } = require("../service/description");
 const NATS = require("nats");
-const nc = NATS.connect();
+const nc = NATS.connect(process.env.nats_server);
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
