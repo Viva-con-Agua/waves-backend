@@ -78,6 +78,6 @@ router
     deletePoolEvent
   );
 
-router.route("/user/me").get(verify, getPoolEventByUserId); //private
+router.route("/user/me").get(verifyX, getPoolEventByUserId); //private
 
 module.exports = router;

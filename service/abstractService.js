@@ -3,6 +3,7 @@ exports.countEntriesByTableName = (tableName, userId, callback) => {
   WHERE user_id=?`;
   global.conn.query(sql, userId, (error, count) => {
     if (error) {
+      console.log("-->", error);
       callback(error);
     }
     callback(null, count);
@@ -14,6 +15,7 @@ exports.joinNotificationOnTablename = (tableName, userId, callback) => {
   WHERE user_id=?`;
   global.conn.query(sql, userId, (error, count) => {
     if (error) {
+      console.log("-->", error);
       callback(error);
     }
     callback(null, count);

@@ -1,37 +1,48 @@
-const { getAllUsersIds } = require("../service/users");
+const { getAllUsersIds } = require("./usersService");
 
 exports.saveNotification = (type, source_id, callback) => {
-  console.log(type, source_id);
-  const notification = { type };
-  getAllUsersIds((error, userIds) => {
-    if (error) {
-      callback(error);
-    }
+  try {
+    console.log(type, source_id);
+    const notification = { type };
+    getAllUsersIds((error, userIds) => {
+      if (error) {
+        callback(error);
+      }
 
-    userIds.map(({ id }, i) => {
-      notification.user_id = id;
-      console.log(notification);
-      const sql = "INSERT INTO notifications SET ?;";
-      global.conn.query(sql, notification, (error, resp) => {
-        if (error) {
-          callback(error);
-        }
-        savePooleventNotification(
-          type,
-          {
-            notification_type: "NEW",
-            id: resp.insertId,
-            source_id
-          },
-          (error, resp) => {
-            if (userIds.length - 1 === i) {
-              callback(null, resp);
-            }
+      userIds.map(({ id }, i) => {
+        notification.user_id = id;
+        console.log(notification);
+        const sql = "INSERT INTO notifications SET ?;";
+        global.conn.query(sql, notification, (error, resp) => {
+          if (error) {
+            console.log("-->", error.message);
+
+            callback(error);
           }
-        );
+          savePooleventNotification(
+            type,
+            {
+              notification_type: "NEW",
+              id: resp.insertId,
+              source_id
+            },
+            (error, resp) => {
+              if (error) {
+                console.log("-->", error.message);
+
+                callback(error);
+              }
+              if (userIds.length - 1 === i) {
+                callback(null, resp);
+              }
+            }
+          );
+        });
       });
     });
-  });
+  } catch (error) {
+    callback(error);
+  }
 };
 
 const savePooleventNotification = (type, notification, callback) => {
@@ -77,16 +88,24 @@ exports.getDirtyNotification = (user_id, callback) => {
 };
 
 exports.sendNewBadge = (data, callback) => {
-  global.conn.query(
-    `select * from badges where id=${data[0].badge_id}`,
-    (error, badge) => {
-      if (error) {
-        console.log(error);
+  try {
+    global.conn.query(
+      `select * from badges where id=${data[0].badge_id}`,
+      (error, badge) => {
+        console.log(badge);
+        if (error) {
+          console.log(error);
+          callback(error)
+        }
+        global.em.emit("NEW_BADGE", badge[0]);
+        callback();
       }
-      global.em.emit("NEW_BADGE", badge[0]);
-      callback();
-    }
-  );
+    );  
+  } catch (error) {
+    console.log(error);
+    callback(error)
+  }
+  
 };
 //'PE_RELEASED', 'PE_CANCELLED', 'NEW_COMMENT', 'NEW_VOTE', 'APPLICATION_REJECTED', 'APPLICATION_ACCEPETED', 'UNLOCKED_ACHIEVEMENT', 'NEW_ACHIEVEMENT_ADDED'
 exports.getTableNameByNotificationType = type => {

@@ -1,13 +1,10 @@
-const { initConnection } = require("../config/connectMysql");
-
 exports.getInformation = (req, res) => {
-  const conn = initConnection();
   const { id } = req.user;
   const sql = `update badge_progress set ? 
   where user_id='${id}' 
   and type='info' 
   and completed=0;`;
- global.conn.query(sql, { completed: 1 }, (error, resp) => {
+  global.conn.query(sql, { completed: 1 }, (error, resp) => {
     if (error) {
       res.status(400).json({
         success: false,

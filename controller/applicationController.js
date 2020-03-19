@@ -2,46 +2,59 @@ const { checkChallengeComplete } = require("../service/gamification");
 const NATS = require("nats");
 const nc = NATS.connect(process.env.nats_server);
 
+
 // @desc get all applications by poolevent
 // @route GET /api/v1/application/event/:id
 // @access Private
 exports.getApplicationsEvent = (req, res) => {
-  const { id } = req.params;
-  global.conn.query(
-    `SELECT a.created_at,
-    a.id as application_id,
-    u.id as user_id,
-    u.first_name,
-    u.last_name,
-    a.text,
-    a.state
-    FROM applications a
-    JOIN users u ON u.id=a.user_id 
-    WHERE a.poolevent_id=${id};`,
-    (error, applications) => {
-      if (error) {
-        res.status(400).json({
-          success: false,
-          message: error.message
-        });
-      }
-      getStatistic(applications, (error, result) => {
-        applications.statistic = result;
-        console.log(applications);
-
+  if (req.params) {
+    const { id } = req.params;
+    global.conn.query(
+      `SELECT a.created_at,
+      a.id as application_id,
+      u.id as user_id,
+      u.first_name,
+      u.last_name,
+      a.text,
+      a.state
+      FROM applications a
+      JOIN users u ON u.id=a.user_id 
+      WHERE a.poolevent_id=${id};`,
+      (error, applications) => {
         if (error) {
           res.status(400).json({
             success: false,
-            error: error.message
+            message: error.message
           });
         }
-        res.status(200).json({
-          success: true,
-          data: applications
+        getStatistic(applications, (error, app_stats) => {
+          if (error) {
+            res.status(400).json({
+              success: false,
+              error: error.message
+            });
+          }
+          resolveUserId(app_stats, (error, app_stats_user) => {
+            if (error) {
+              res.status(400).json({
+                success: false,
+                error: error.message
+              });
+            }
+            res.status(200).json({
+              success: true,
+              data: app_stats_user
+            });
+          });
         });
-      });
-    }
-  );
+      }
+    );
+  } else {
+    res.status(400).json({
+      success: false,
+      message: "event id missing"
+    });
+  }
 };
 
 const getStatistic = (applications, callback) => {
@@ -75,7 +88,7 @@ exports.getApplicationsUser = (req, res) => {
   FROM applications a 
   JOIN poolevents p 
   on a.poolevent_id=p.id 
-  WHERE a.user_id="${id} ";`;
+  WHERE a.user_id="${id}";`;
 
   global.conn.query(query, (error, applications) => {
     if (error) {
@@ -180,7 +193,6 @@ exports.putApplication = (req, res) => {
     body,
     (error, resp) => {
       if (error) {
-        console.log(error);
         res.status(400).json({
           success: false,
           message: `Error in putApplication: ${error.message}`
@@ -220,3 +232,25 @@ exports.getApplicationStatisticByUserId = (req, res) => {
     }
   );
 };
+<<<<<<< HEAD
+=======
+
+const resolveUserId = async (applications, callback) => {
+  let result = [];
+  let i = 0;
+  applications.map(application => {
+    fetchUserById(application.user_id, (error, user) => {
+      if (error) {
+        callback(error);
+      }
+      application.user = user;
+      result.push(application);
+
+      if (applications.length - 1 === i) {
+        callback(null, result);
+      }
+      i++;
+    });
+  });
+};
+>>>>>>> develop

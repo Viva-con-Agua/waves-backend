@@ -1,7 +1,6 @@
 const { checkChallengeComplete } = require("../service/gamification");
 const NATS = require("nats");
 const nc = NATS.connect(process.env.nats_server);
-
 // @desc get comment by id
 // @route GET /api/v1/comment/:id
 // @access Public

@@ -12,7 +12,7 @@ exports.calculatePooleventOfTheDay = () => {
         console.log(trophie);
       });
     });
-  }, 100000 * 60 * 24);
+  }, 10000 *122);
 };
 
 const fetchTodaysPe = callback => {

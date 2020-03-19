@@ -1,11 +1,13 @@
 const router = require("express").Router();
-const { verify } = require("../middelware/tokenChecker");
-const { checkAccessControl } = require("../middelware/accessControlChecker");
+const { verify, verifyX } = require("../middelware/tokenChecker");
+const {
+  pooleventAccessControl,
+  applicationAccessControl
+} = require("../middelware/accessControlChecker");
 const { check } = require("express-validator");
 
 const {
   deleteApplication,
-  getApplicationById,
   getApplicationsEvent,
   getApplicationsUser,
   postApplication,
@@ -14,7 +16,7 @@ const {
 } = require("../controller/applicationController");
 
 router.route("/").post(
-  verify,
+  verifyX,
   [
     check("text").isString(),
     check("poolevent_id")
@@ -27,8 +29,7 @@ router.route("/").post(
 
 router
   .route("/:id")
-  .get(getApplicationById)
-  .put(verify, checkAccessControl("updateAny", "application"), putApplication)
+  .put(verifyX, applicationAccessControl, putApplication)
   .delete(verify, deleteApplication);
 
 router.route("/poolevent/:id").get(getApplicationsEvent);
