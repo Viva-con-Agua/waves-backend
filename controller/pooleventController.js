@@ -5,13 +5,39 @@ const { savePoolevent } = require("../service/poolevent");
 const { saveLocation } = require("../service/location");
 const { saveDescription } = require("../service/description");
 const NATS = require("nats");
-const nc = NATS.connect(process.env.nats_server);
 
 // @desc get all poolevents
 // @route GET /api/v1/poolevent
 // @access Public
 //TODO: pagination + sorting
 exports.getPoolEvents = (req, res, next) => {
+  console.log(process.env.NATS_URI);
+
+  // const nc = NATS.connect(process.env.NATS_URI);
+
+  console.log("Waiting before connecting to NATS at:", process.env.NATS_URI);
+
+  let nc = NATS.connect(process.env.NATS_URI);
+  nc.on("connect", (c) => {
+    console.log("Connected to NATS at:", process.env.NATS_URI);
+  });
+  nc.on("error", (err) => {
+    console.log("Error establishing connection to NATS:", err);
+  });
+
+  // if (err) {
+  //   console.log("Error establishing connection to NATS:", err);
+  // }
+
+  // const nc = NATS.connect(process.env.NATS_URI);
+
+  nc.subscribe("poolevent.get", function (msg) {
+    console.log("New Event with id: " + msg);
+  });
+
+  nc.publish("poolevent.get", "all");
+  console.log("process.env.NATS_URI");
+
   let filter = "";
   let { limit, type, region, state, start } = req.query;
   if (!limit) {
@@ -57,13 +83,13 @@ exports.getPoolEvents = (req, res, next) => {
       console.log(error);
       res.status(400).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(200).json({
       success: true,
-      data: poolevents
+      data: poolevents,
     });
   });
 };
@@ -111,16 +137,17 @@ exports.getPoolEventsForNotifications = (req, res, next) => {
   GROUP BY p.id;`;
   global.conn.query(sql, (error, poolevents) => {
     if (error) {
+      console.log(error);
       res.status(400).json({
         success: false,
-        message: error.message
+        message: error.message,
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: poolevents,
       });
     }
-
-    res.status(200).json({
-      success: true,
-      data: poolevents
-    });
   });
 };
 
@@ -138,7 +165,7 @@ exports.getPoolEventById = (req, res) => {
     if (err) {
       res.status(400).json({
         success: false,
-        message: `Error in getPoolEventById: ${err.message}`
+        message: `Error in getPoolEventById: ${err.message}`,
       });
     } else {
       if (poolevent.length > 0) {
@@ -163,7 +190,7 @@ exports.getPoolEventById = (req, res) => {
           supporter_lim,
           state,
           text,
-          html
+          html,
         } = poolevent[0];
 
         res.status(200).json({
@@ -188,13 +215,13 @@ exports.getPoolEventById = (req, res) => {
               postal_code,
               desc,
               longitude,
-              latitude
+              latitude,
             },
             description: {
               text,
-              html
-            }
-          }
+              html,
+            },
+          },
         });
       } else {
         res.status(400).json({ success: false, error: "Poolevent not found" });
@@ -215,12 +242,12 @@ exports.getPoolEventByIdForNotifications = (req, res) => {
     if (err) {
       res.status(400).json({
         success: false,
-        message: `Error in getPoolEventByIdForNotifications: ${err.message}`
+        message: `Error in getPoolEventByIdForNotifications: ${err.message}`,
       });
     } else {
       res.status(200).json({
         success: true,
-        data: poolevent
+        data: poolevent,
       });
     }
   });
@@ -236,7 +263,7 @@ exports.postPoolEvent = (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(422).json({
       success: false,
-      errors: errors.array()
+      errors: errors.array(),
     });
   }
 
@@ -245,14 +272,14 @@ exports.postPoolEvent = (req, res) => {
   savePoolevent(front, (error, pooleventResp) => {
     if (error) {
       res.status(400).json({
-        message: error
+        message: error,
       });
     }
     location.poolevent_id = pooleventResp.insertId;
     saveLocation(location, (error, locationResp) => {
       if (error) {
         res.status(400).json({
-          message: error
+          message: error,
         });
       }
       description.poolevent_id = pooleventResp.insertId;
@@ -260,7 +287,7 @@ exports.postPoolEvent = (req, res) => {
         if (error) {
           res.status(400).json({ message: error });
         }
-        saveNotification("poolevents", pooleventResp.insertId, error => {
+        saveNotification("poolevents", pooleventResp.insertId, (error) => {
           if (error) {
             res.status(400).json({ message: error });
           }
@@ -276,7 +303,7 @@ exports.postPoolEvent = (req, res) => {
               res.status(200).json({
                 location: locationResp,
                 poolevent: pooleventResp,
-                description: descriptionResp
+                description: descriptionResp,
               });
             }
           );
@@ -297,7 +324,7 @@ exports.deletePoolEvent = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in deletePoolevent ${error.message}`
+          message: `Error in deletePoolevent ${error.message}`,
         });
       }
       global.conn.query(
@@ -306,7 +333,7 @@ exports.deletePoolEvent = (req, res) => {
           if (error) {
             res.status(400).json({
               success: false,
-              message: `Error in deletePoolevent ${error.message}`
+              message: `Error in deletePoolevent ${error.message}`,
             });
           }
           global.conn.query(
@@ -315,14 +342,14 @@ exports.deletePoolEvent = (req, res) => {
               if (error) {
                 res.status(400).json({
                   success: false,
-                  message: `Error in deletePoolevent ${error.message}`
+                  message: `Error in deletePoolevent ${error.message}`,
                 });
               } else {
                 nc.publish("poolevent.delete", id.toString());
 
                 res.status(200).json({
                   success: true,
-                  data: resp
+                  data: resp,
                 });
               }
             }
@@ -348,7 +375,7 @@ exports.putPoolEvent = (req, res) => {
         console.log(error);
         res.status(400).json({
           success: false,
-          message: `Error in putPoolEvent: ${error.message}`
+          message: `Error in putPoolEvent: ${error.message}`,
         });
       } else {
         if (body.location) {
@@ -360,7 +387,7 @@ exports.putPoolEvent = (req, res) => {
                 console.log(error);
                 res.status(400).json({
                   success: false,
-                  message: `Error in putPoolEvent: ${error.message}`
+                  message: `Error in putPoolEvent: ${error.message}`,
                 });
               }
             }
@@ -374,12 +401,12 @@ exports.putPoolEvent = (req, res) => {
                   console.log(error);
                   res.status(400).json({
                     success: false,
-                    message: `Error in putPoolEvent: ${error.message}`
+                    message: `Error in putPoolEvent: ${error.message}`,
                   });
                 }
                 res.status(200).json({
                   success: true,
-                  data: response
+                  data: response,
                 });
               }
             );
@@ -388,7 +415,7 @@ exports.putPoolEvent = (req, res) => {
 
             res.status(200).json({
               success: true,
-              data: response
+              data: response,
             });
           }
         } else if (body.description) {
@@ -400,7 +427,7 @@ exports.putPoolEvent = (req, res) => {
                 console.log(error);
                 res.status(400).json({
                   success: false,
-                  message: `Error in putPoolEvent: ${error.message}`
+                  message: `Error in putPoolEvent: ${error.message}`,
                 });
               }
             }
@@ -408,7 +435,7 @@ exports.putPoolEvent = (req, res) => {
         } else {
           res.status(200).json({
             success: true,
-            data: resp
+            data: resp,
           });
         }
       }
@@ -443,12 +470,12 @@ exports.getPoolEventByUserId = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in putPoolEvent: ${error.message}`
+          message: `Error in putPoolEvent: ${error.message}`,
         });
       } else {
         res.status(200).json({
           success: true,
-          data: resp
+          data: resp,
         });
       }
     }
@@ -466,12 +493,12 @@ exports.getSoonStartingEvents = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in putPoolEvent: ${error.message}`
+          message: `Error in putPoolEvent: ${error.message}`,
         });
       } else {
         res.status(200).json({
           success: true,
-          data: resp
+          data: resp,
         });
       }
     }

@@ -1,10 +1,10 @@
 const { countEntriesByTableName } = require("./abstractService");
 const {
   sendNewBadge,
-  saveNotificationByUser
+  saveNotificationByUser,
 } = require("../service/notification");
-const NATS = require("nats");
-const nc = NATS.connect(process.env.nats_server);
+// const NATS = require("nats");
+// const nc = NATS.connect("nats://demo.nats.io:4222");
 
 //checks if a challenge is completed and fires a notification if so
 exports.checkChallengeComplete = (type, userId, callback) => {
@@ -83,7 +83,7 @@ const setChallengeToCompleted = (challenges, callback) => {
       AND user_id="${challenge.user_id}";`;
     global.conn.query(sql, { completed: 1 }, (error, badge) => {
       if (!error && challenges.length - 1 == i) {
-        nc.publish("challenge", challenge.badge_id.toString());
+        // nc.publish("challenge", challenge.badge_id.toString());
         saveNotificationByUser(
           challenge.user_id,
           "",
@@ -129,7 +129,7 @@ exports.initNewUsersAchievements = (userId, callback) => {
   });
 };
 
-const getAllChallenges = callback => {
+const getAllChallenges = (callback) => {
   const selectAllChallenges = "SELECT * FROM challenges;";
   global.conn.query(selectAllChallenges, (error, challenges) => {
     if (error) {
@@ -140,7 +140,7 @@ const getAllChallenges = callback => {
   });
 };
 
-exports.checkProfileComplete = userId => {
+exports.checkProfileComplete = (userId) => {
   global.conn.query(
     `SELECT * FROM users WHERE id="${userId}"`,
     (error, user) => {
@@ -149,7 +149,7 @@ exports.checkProfileComplete = userId => {
       }
       let values = Object.values(user[0]);
       const filtered = values.filter(
-        value =>
+        (value) =>
           value == null || value == undefined || value == "" || value == ""
       );
       global.conn.query(
@@ -173,7 +173,7 @@ exports.checkProfileComplete = userId => {
   );
 };
 
-exports.checkProfileVerified = userId => {
+exports.checkProfileVerified = (userId) => {
   global.conn.query(
     `SELECT * FROM users WHERE id="${userId}"`,
     (error, user) => {

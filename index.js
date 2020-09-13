@@ -56,8 +56,6 @@ app.use("/waves/api/v1/eventtype", eventtype);
 app.use("/waves/api/v1/month", month);
 app.use("/waves/api/v1/trophie", trophie);
 
-
-
 const port = process.env.PORT || 5000;
 
 server.listen(port, () => {

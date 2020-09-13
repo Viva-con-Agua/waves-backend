@@ -1,6 +1,6 @@
 const { checkChallengeComplete } = require("../service/gamification");
-const NATS = require("nats");
-const nc = NATS.connect(process.env.nats_server);
+// const NATS = require("nats");
+// const nc = NATS.connect("nats://demo.nats.io:4222");
 // @desc get vote by id
 // @route GET /api/v1/vote/:id
 // @access Public
@@ -13,12 +13,12 @@ exports.getvoteByCommentId = (req, res) => {
       if (err) {
         res.status(400).json({
           success: false,
-          message: `Error in getvoteId: ${err.message}`
+          message: `Error in getvoteId: ${err.message}`,
         });
       } else {
         res.status(200).json({
           success: true,
-          data: votes
+          data: votes,
         });
       }
     }
@@ -42,7 +42,7 @@ exports.postvote = (req, res) => {
         if (error) {
           res.status(400).json({ success: false, messaage: error.message });
         }
-        nc.publish("vote.create", vote.insertId.toString());
+        // nc.publish("vote.create", vote.insertId.toString());
         res.status(200).json({ success: true, data: vote });
       });
     }
@@ -61,13 +61,13 @@ exports.deletevote = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in deletevote ${error.message}`
+          message: `Error in deletevote ${error.message}`,
         });
       } else {
-        nc.publish("vote.delete", id);
+        // nc.publish("vote.delete", id);
         res.status(200).json({
           success: true,
-          data: resp
+          data: resp,
         });
       }
     }

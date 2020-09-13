@@ -1,0 +1,41 @@
+version: '3'
+services:
+  waves-backend:
+    image: vivaconagua/waves-backend:stage
+    build: .
+    env_file:
+      - config/.env
+    container_name: waves-backend
+    networks:
+      - notifybackend_vca-net
+    restart: unless-stopped
+    links: 
+        - waves-database:db
+    environment:
+        - HOST=waves-database
+        - "NATS_URI=nats://nats:4222"
+    ports:
+      - "5000:5000"
+
+
+  waves-database:
+    image: mysql
+    container_name: waves-database
+    networks:
+      - notifybackend_vca-net
+    environment:
+      - MYSQL_DATABASE=wavesdb
+      - MYSQL_USER=waves
+      - MYSQL_PASSWORD=waves
+      - MYSQL_ROOT_PASSWORD=waves
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./config/sql-scripts:/docker-entrypoint-initdb.d
+
+networks:
+  notifybackend_vca-net:
+    external: true
+
+
+

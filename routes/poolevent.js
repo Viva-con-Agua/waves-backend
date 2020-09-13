@@ -3,7 +3,7 @@ const { check } = require("express-validator");
 const { verify, verifyX } = require("../middelware/tokenChecker");
 const {
   checkAccessControl,
-  pooleventAccessControl
+  pooleventAccessControl,
 } = require("../middelware/accessControlChecker");
 
 const {
@@ -13,24 +13,19 @@ const {
   getPoolEventById,
   getPoolEvents,
   postPoolEvent,
-  putPoolEvent
+  putPoolEvent,
+  getPoolEventByIdForNotifications,
 } = require("../controller/pooleventController");
 
 router
   .route("/")
   .get(getPoolEvents)
   .post(
-    verifyX,
-    pooleventAccessControl,
+    verify,
+    checkAccessControl("createAny", "poolevent"),
     [
-      check("front.name")
-        .not()
-        .isEmpty()
-        .isString(),
-      check("front.idevent_type")
-        .not()
-        .isEmpty()
-        .isNumeric(),
+      check("front.name").not().isEmpty().isString(),
+      check("front.idevent_type").not().isEmpty().isNumeric(),
       check("front.active_user_only").isBoolean(),
       check("front.website").isURL(),
       check("front.supporter_lim").isNumeric(),
@@ -39,39 +34,25 @@ router
       check("front.event_start").isNumeric(),
       check("front.event_end").isNumeric(),
       check("location.route").isString(),
-      check("location.street_number")
-        .not()
-        .isEmpty()
-        .isString(),
-      check("location.longitude")
-        .not()
-        .isEmpty()
-        .isString(),
-      check("location.latitude")
-        .not()
-        .isEmpty()
-        .isString(),
-      check("location.locality")
-        .not()
-        .isEmpty()
-        .isString(),
-      check("location.postal_code")
-        .not()
-        .isEmpty()
-        .isString(),
+      check("location.street_number").not().isEmpty().isString(),
+      check("location.longitude").not().isEmpty().isString(),
+      check("location.latitude").not().isEmpty().isString(),
+      check("location.locality").not().isEmpty().isString(),
+      check("location.postal_code").not().isEmpty().isString(),
       check("location.desc").isString(),
       check("description.text").isString(),
-      check("description.html").isString()
+      check("description.html").isString(),
     ],
     postPoolEvent
   );
 
 router.route("/notify").get(getPoolEventsForNotifications);
+router.route("/notify/:id").get(getPoolEventByIdForNotifications);
 
 router
   .route("/:id")
   .get(getPoolEventById)
-  .put(verifyX, pooleventAccessControl, putPoolEvent)
+  .put(verify, checkAccessControl("updateAny", "poolevent"), putPoolEvent)
   .delete(
     verify,
     checkAccessControl("updateAny", "poolevent"),

@@ -1,6 +1,6 @@
 const { checkChallengeComplete } = require("../service/gamification");
-const NATS = require("nats");
-const nc = NATS.connect(process.env.nats_server);
+// const NATS = require("nats");
+// const nc = NATS.connect("nats://demo.nats.io:4222");
 
 // @desc get all applications by poolevent
 // @route GET /api/v1/application/event/:id
@@ -22,7 +22,7 @@ exports.getApplicationsEvent = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       }
       getStatistic(applications, (error, result) => {
@@ -32,12 +32,12 @@ exports.getApplicationsEvent = (req, res) => {
         if (error) {
           res.status(400).json({
             success: false,
-            error: error.message
+            error: error.message,
           });
         }
         res.status(200).json({
           success: true,
-          data: applications
+          data: applications,
         });
       });
     }
@@ -81,12 +81,12 @@ exports.getApplicationsUser = (req, res) => {
     if (error) {
       res.status(400).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
     res.status(200).json({
       success: true,
-      data: applications
+      data: applications,
     });
   });
 };
@@ -102,12 +102,12 @@ exports.getApplicationById = (req, res) => {
       if (err) {
         res.status(400).json({
           success: false,
-          message: `Error in getApplicationById: ${err.message}`
+          message: `Error in getApplicationById: ${err.message}`,
         });
       } else {
         res.status(200).json({
           success: true,
-          data: application
+          data: application,
         });
       }
     }
@@ -128,14 +128,14 @@ exports.postApplication = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in create application: ${error.message}`
+          message: `Error in create application: ${error.message}`,
         });
       } else {
-        nc.publish("application.create", response.insertId.toString());
+        // nc.publish("application.create", response.insertId.toString());
         checkChallengeComplete("applications", id, (error, progress) => {
           res.status(200).json({
             success: true,
-            data: response
+            data: response,
           });
         });
       }
@@ -155,13 +155,13 @@ exports.deleteApplication = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in deleteApplication ${error.message}`
+          message: `Error in deleteApplication ${error.message}`,
         });
       } else {
-        nc.publish("application.delete", id);
+        // nc.publish("application.delete", id);
         res.status(200).json({
           success: true,
-          data: resp
+          data: resp,
         });
       }
     }
@@ -183,13 +183,13 @@ exports.putApplication = (req, res) => {
         console.log(error);
         res.status(400).json({
           success: false,
-          message: `Error in putApplication: ${error.message}`
+          message: `Error in putApplication: ${error.message}`,
         });
       } else {
-        nc.publish("application.edit", id);
+        // nc.publish("application.edit", id);
         res.status(200).json({
           success: true,
-          data: resp
+          data: resp,
         });
       }
     }
@@ -209,12 +209,12 @@ exports.getApplicationStatisticByUserId = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in putApplication: ${error.message}`
+          message: `Error in putApplication: ${error.message}`,
         });
       } else {
         res.status(200).json({
           success: true,
-          statistic: resp
+          statistic: resp,
         });
       }
     }

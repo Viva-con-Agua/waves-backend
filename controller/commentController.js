@@ -1,6 +1,6 @@
 const { checkChallengeComplete } = require("../service/gamification");
-const NATS = require("nats");
-const nc = NATS.connect(process.env.nats_server);
+// const NATS = require("nats");
+// const nc = NATS.connect("nats://demo.nats.io:4222");
 
 // @desc get comment by id
 // @route GET /api/v1/comment/:id
@@ -17,12 +17,12 @@ exports.getCommentsByPooleventId = (req, res) => {
     if (err) {
       res.status(400).json({
         success: false,
-        message: `Error in getCommentsByPooleventId: ${err.message}`
+        message: `Error in getCommentsByPooleventId: ${err.message}`,
       });
     } else {
       res.status(200).json({
         success: true,
-        data: comment
+        data: comment,
       });
     }
   });
@@ -41,12 +41,12 @@ exports.getCommentsByUserId = (req, res) => {
     if (err) {
       res.status(400).json({
         success: false,
-        message: `Error in getCommentsByUserId: ${err.message}`
+        message: `Error in getCommentsByUserId: ${err.message}`,
       });
     } else {
       res.status(200).json({
         success: true,
-        data: comment
+        data: comment,
       });
     }
   });
@@ -64,12 +64,12 @@ exports.getCommentResponses = (req, res) => {
     if (err) {
       res.status(400).json({
         success: false,
-        message: `Error in getCommentResponses: ${err.message}`
+        message: `Error in getCommentResponses: ${err.message}`,
       });
     } else {
       res.status(200).json({
         success: true,
-        data: comment
+        data: comment,
       });
     }
   });
@@ -87,20 +87,20 @@ exports.postComment = (req, res) => {
     if (error) {
       res.status(400).json({
         success: false,
-        messaage: error.message
+        messaage: error.message,
       });
     } else {
-      nc.publish("comment.create", comment.insertId.toString());
+      // nc.publish("comment.create", comment.insertId.toString());
       checkChallengeComplete("comments", id, (error, resp) => {
         if (error) {
           res.status(400).json({
             success: false,
-            messaage: error.message
+            messaage: error.message,
           });
         }
         res.status(200).json({
           success: true,
-          data: comment
+          data: comment,
         });
       });
     }
@@ -117,13 +117,13 @@ exports.deleteComment = (req, res) => {
     if (error) {
       res.status(400).json({
         success: false,
-        message: `Error in deletecomment ${error.message}`
+        message: `Error in deletecomment ${error.message}`,
       });
     } else {
-      nc.publish("comment.delete", id);
+      // nc.publish("comment.delete", id);
       res.status(200).json({
         success: true,
-        data: resp
+        data: resp,
       });
     }
   });
@@ -144,13 +144,13 @@ exports.putComment = (req, res) => {
       if (error) {
         res.status(400).json({
           success: false,
-          message: `Error in putcomment: ${error.message}`
+          message: `Error in putcomment: ${error.message}`,
         });
       } else {
-        nc.publish("comment.edit", id);
+        // nc.publish("comment.edit", id);
         res.status(200).json({
           success: true,
-          data: resp
+          data: resp,
         });
       }
     }

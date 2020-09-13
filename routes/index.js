@@ -7,6 +7,7 @@ const { postAchievement } = require("../controller/achievementConroller");
 const { getInformation } = require("../controller/infoController");
 const { verify } = require("../middelware/tokenChecker");
 const { checkProfileComplete } = require("../service/gamification");
+const { getNotifications } = require("../controller/notificationController");
 
 const { getApplicationsUser } = require("../controller/applicationController");
 
@@ -14,13 +15,13 @@ const {
   postBadge,
   getAllBadgesByUserId,
   getAllBadges,
-  averageUserCompletedAchievement
+  averageUserCompletedAchievement,
 } = require("../controller/badgesController");
 
 router.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "i'm alive!"
+    message: "i'm alive!",
   });
 });
 
@@ -44,8 +45,12 @@ router.route("/oauth").get(authenticate);
 
 router.route("/info").get(verify, getInformation);
 
+router.route("/notifications").get(getNotifications);
+
 router.route("/achievement/avg/:id").get(averageUserCompletedAchievement);
 
-router.route("/test").get((req,res)=>{checkProfileComplete('4a74141e-c2c0-46a0-9c0c-84bef8be7d0f')});
+router.route("/test").get((req, res) => {
+  checkProfileComplete("4a74141e-c2c0-46a0-9c0c-84bef8be7d0f");
+});
 
 module.exports = router;
